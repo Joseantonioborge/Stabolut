@@ -4,1139 +4,1046 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stabolut — Financial Dashboard</title>
-<!-- Chart.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
-  integrity="sha512-CQBWl4fJHWbryGE+Pc3UJWW1h6zdKqUsZpBlNmJA8iyr1hKP8QCQOomc4uBuZJWMjBnDMbYh7qe5O5mI5MvQ=="
-  crossorigin="anonymous"></script>
+<!-- Chart.js: NO integrity attr so it never gets blocked by SRI mismatch -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <!-- SheetJS for Excel export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
-  crossorigin="anonymous"></script>
-<!-- Google Fonts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Mono&display=swap" rel="stylesheet">
 <style>
-:root {
-  --purple: #7B2FBE;
-  --purple-l: #9B59D0;
-  --purple-pale: #F3EAFB;
-  --purple-mid: #E0C8F5;
-  --green: #27AE60;
-  --green-pale: #E8F8EF;
-  --red: #E74C3C;
-  --red-pale: #FDECEA;
-  --gold: #F39C12;
-  --gold-pale: #FEF9E7;
-  --teal: #1ABC9C;
-  --g100: #F8F9FA;
-  --g200: #EEF0F3;
-  --g300: #DEE2E9;
-  --g500: #8892A0;
-  --g700: #4A5568;
-  --g900: #1A202C;
-  --bg: #F5F6FB;
-  --white: #FFFFFF;
-  --shadow: 0 2px 12px rgba(123,47,190,.08);
-  --shadow-h: 0 6px 28px rgba(123,47,190,.16);
-  --r: 16px;
-  --rs: 10px;
-  --font: 'DM Sans', system-ui, sans-serif;
-  --mono: 'Space Mono', monospace;
+/* ── VARIABLES ── */
+:root{
+  --pu:#7B2FBE; --pul:#9B59D0; --pup:#F3EAFB; --pum:#E0C8F5;
+  --gr:#27AE60; --grp:#E8F8EF;
+  --re:#E74C3C; --rep:#FDECEA;
+  --go:#F39C12; --gop:#FEF9E7;
+  --te:#1ABC9C;
+  --g1:#F8F9FA; --g2:#EEF0F3; --g3:#DEE2E9;
+  --g5:#8892A0; --g7:#4A5568; --g9:#1A202C;
+  --bg:#F5F6FB; --wh:#FFFFFF;
+  --sh:0 2px 12px rgba(123,47,190,.08);
+  --shh:0 6px 28px rgba(123,47,190,.16);
+  --r:16px; --rs:10px;
+  --f:'DM Sans',system-ui,sans-serif;
+  --fm:'Space Mono',monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{font-family:var(--font);background:var(--bg);color:var(--g900);min-height:100vh}
+body{font-family:var(--f);background:var(--bg);color:var(--g9);min-height:100vh}
 
 /* ── LAYOUT ── */
 .layout{display:flex;min-height:100vh}
 
 /* ── SIDEBAR ── */
 .sidebar{
-  width:230px;min-width:230px;background:var(--white);
-  border-right:1.5px solid var(--g200);
+  width:228px;min-width:228px;background:var(--wh);
+  border-right:1.5px solid var(--g2);
   display:flex;flex-direction:column;
   position:sticky;top:0;height:100vh;overflow-y:auto;z-index:100;
   transition:transform .25s
 }
-.sb-logo{padding:24px 20px 16px;border-bottom:1px solid var(--g200)}
-.sb-logo .wordmark{
-  font-size:26px;font-weight:900;letter-spacing:-1px;
-  color:var(--purple);font-family:var(--font);line-height:1
-}
-.sb-logo .wordmark span{color:var(--purple-l)}
-.sb-badge{
-  display:inline-block;margin-top:8px;
-  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-  color:var(--purple);background:var(--purple-pale);padding:3px 8px;border-radius:20px
-}
-.sb-nav{padding:12px 10px;flex:1}
+.sb-logo{padding:22px 20px 14px;border-bottom:1px solid var(--g2)}
+.sb-wm{font-size:26px;font-weight:900;letter-spacing:-1px;color:var(--pu);line-height:1}
+.sb-wm b{color:var(--pul)}
+.sb-badge{display:inline-block;margin-top:7px;font-size:10px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;color:var(--pu);
+  background:var(--pup);padding:3px 8px;border-radius:20px}
+.sb-nav{padding:10px 8px;flex:1}
 .nav-sep{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--g500);padding:14px 10px 4px}
-.nav-btn{
-  display:flex;align-items:center;gap:10px;
-  width:100%;padding:10px 10px;border-radius:var(--rs);
-  cursor:pointer;font-size:13.5px;font-weight:500;color:var(--g700);
-  transition:all .15s;border:none;background:none;text-align:left
-}
-.nav-btn:hover{background:var(--purple-pale);color:var(--purple)}
-.nav-btn.active{background:var(--purple);color:#fff}
-.nav-btn .ic{width:20px;text-align:center;font-size:15px}
+  color:var(--g5);padding:14px 10px 4px}
+.nb{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;
+  border-radius:var(--rs);cursor:pointer;font-size:13.5px;font-weight:500;
+  color:var(--g7);transition:all .15s;border:none;background:none;text-align:left;
+  font-family:var(--f)}
+.nb:hover{background:var(--pup);color:var(--pu)}
+.nb.active{background:var(--pu);color:#fff}
+.ic{width:20px;text-align:center;font-size:14px}
 
 /* ── MAIN ── */
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
 
 /* ── TOPBAR ── */
 .topbar{
-  background:var(--white);border-bottom:1.5px solid var(--g200);
-  padding:14px 28px;display:flex;align-items:center;
+  background:var(--wh);border-bottom:1.5px solid var(--g2);
+  padding:13px 26px;display:flex;align-items:center;
   justify-content:space-between;position:sticky;top:0;z-index:50;gap:12px
 }
-.topbar-left{display:flex;align-items:center;gap:12px}
-.topbar h1{font-size:18px;font-weight:700;color:var(--g900)}
-.topbar .sub{font-size:12px;color:var(--g500);margin-top:2px}
-.topbar-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tl{display:flex;align-items:center;gap:12px}
+.topbar h1{font-size:17px;font-weight:700;color:var(--g9)}
+.tsub{font-size:11.5px;color:var(--g5);margin-top:2px}
+.tr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
-.btn{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:8px 16px;border-radius:var(--rs);
-  font-size:13px;font-weight:600;cursor:pointer;border:none;
-  transition:all .15s;font-family:var(--font)
-}
-.btn-pri{background:var(--purple);color:#fff}
-.btn-pri:hover{background:var(--purple-l);box-shadow:0 4px 16px rgba(123,47,190,.3)}
-.btn-out{background:var(--white);color:var(--purple);border:1.5px solid var(--purple)}
-.btn-out:hover{background:var(--purple-pale)}
-.btn-ghost{background:var(--g100);color:var(--g700)}
-.btn-ghost:hover{background:var(--g200)}
-.hamburger{display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--g700);padding:4px}
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;
+  border-radius:var(--rs);font-size:12.5px;font-weight:600;cursor:pointer;
+  border:none;transition:all .15s;font-family:var(--f)}
+.bp{background:var(--pu);color:#fff}
+.bp:hover{background:var(--pul);box-shadow:0 4px 14px rgba(123,47,190,.3)}
+.bo{background:var(--wh);color:var(--pu);border:1.5px solid var(--pu)}
+.bo:hover{background:var(--pup)}
+.bg{background:var(--g1);color:var(--g7)}
+.bg:hover{background:var(--g2)}
+.hbg{display:none;background:none;border:none;cursor:pointer;font-size:22px;color:var(--g7);padding:4px}
 
 /* ── PAGES ── */
-/* Use visibility trick instead of display:none so charts can measure */
-.page{display:none;padding:24px 28px 40px;animation:fadeIn .2s ease}
-.page.active{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.page{display:none;padding:22px 26px 40px}
+.page.active{display:block;animation:fi .2s ease}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── KPI GRID ── */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:14px;margin-bottom:22px}
-.kpi-card{
-  background:var(--white);border-radius:var(--r);padding:18px 20px;
-  border:1px solid var(--g200);box-shadow:var(--shadow);
-  position:relative;overflow:hidden;transition:all .2s
-}
-.kpi-card:hover{box-shadow:var(--shadow-h);transform:translateY(-2px)}
-.kpi-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:4px;
-  border-radius:var(--r) var(--r) 0 0
-}
-.kpi-card.c-pu::before{background:linear-gradient(90deg,var(--purple),var(--purple-l))}
-.kpi-card.c-gr::before{background:linear-gradient(90deg,#27AE60,#2ECC71)}
-.kpi-card.c-re::before{background:linear-gradient(90deg,#E74C3C,#F1948A)}
-.kpi-card.c-go::before{background:linear-gradient(90deg,#F39C12,#F7DC6F)}
-.kpi-card.c-te::before{background:linear-gradient(90deg,#1ABC9C,#48C9B0)}
-.kpi-lbl{font-size:11px;font-weight:700;color:var(--g500);text-transform:uppercase;letter-spacing:.5px}
-.kpi-val{font-size:24px;font-weight:700;color:var(--g900);margin:6px 0 3px;font-family:var(--mono)}
-.kpi-dlt{font-size:12px;font-weight:600}
-.kpi-dlt.pos{color:var(--green)}
-.kpi-dlt.neg{color:var(--red)}
-.kpi-ic{position:absolute;right:16px;top:16px;font-size:26px;opacity:.13}
+.kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(182px,1fr));gap:13px;margin-bottom:20px}
+.kc{background:var(--wh);border-radius:var(--r);padding:17px 19px;
+  border:1px solid var(--g2);box-shadow:var(--sh);
+  position:relative;overflow:hidden;transition:all .2s}
+.kc:hover{box-shadow:var(--shh);transform:translateY(-2px)}
+.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:var(--r) var(--r) 0 0}
+.kc.cp::before{background:linear-gradient(90deg,var(--pu),var(--pul))}
+.kc.cg::before{background:linear-gradient(90deg,#27AE60,#2ECC71)}
+.kc.cr::before{background:linear-gradient(90deg,#E74C3C,#F1948A)}
+.kc.co::before{background:linear-gradient(90deg,#F39C12,#F7DC6F)}
+.kc.ct::before{background:linear-gradient(90deg,#1ABC9C,#48C9B0)}
+.kl{font-size:11px;font-weight:700;color:var(--g5);text-transform:uppercase;letter-spacing:.5px}
+.kv{font-size:22px;font-weight:700;color:var(--g9);margin:5px 0 3px;font-family:var(--fm)}
+.kd{font-size:11.5px;font-weight:600}
+.kd.pos{color:var(--gr)} .kd.neg{color:var(--re)}
+.ki{position:absolute;right:14px;top:14px;font-size:24px;opacity:.12}
 
-/* ── CHARTS ── */
-.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;margin-bottom:20px}
-.charts-grid .wide{grid-column:1/-1}
-.chart-card{background:var(--white);border-radius:var(--r);padding:22px;border:1px solid var(--g200);box-shadow:var(--shadow)}
-.chart-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
-.chart-title{font-size:14px;font-weight:700;color:var(--g900)}
-.chart-sub{font-size:11px;color:var(--g500);margin-top:2px}
-.chart-wrap{position:relative;height:230px}
+/* ── CHARTS GRID ── */
+.cg2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:18px}
+.cg2 .wide{grid-column:1/-1}
+.cc{background:var(--wh);border-radius:var(--r);padding:20px;border:1px solid var(--g2);box-shadow:var(--sh)}
+.ch{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.ct{font-size:13.5px;font-weight:700;color:var(--g9)}
+.csub{font-size:11px;color:var(--g5);margin-top:2px}
+/* CRITICAL: chart container must have explicit height and position:relative */
+.cw{position:relative;width:100%;height:240px}
+.cw canvas{position:absolute;top:0;left:0}
 
 /* ── SECTION TITLE ── */
-.sec-title{
-  font-size:16px;font-weight:700;color:var(--g900);
-  margin:24px 0 14px;display:flex;align-items:center;gap:10px
-}
-.sec-title::after{content:'';flex:1;height:2px;background:var(--g200)}
+.st{font-size:15px;font-weight:700;color:var(--g9);
+  margin:22px 0 13px;display:flex;align-items:center;gap:10px}
+.st::after{content:'';flex:1;height:2px;background:var(--g2)}
 
 /* ── CARD ── */
-.card{background:var(--white);border-radius:var(--r);padding:22px;border:1px solid var(--g200);box-shadow:var(--shadow)}
-.card-title{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--g500);margin-bottom:12px}
-.card.dashed{border:2px dashed var(--purple-l);background:var(--purple-pale)}
+.card{background:var(--wh);border-radius:var(--r);padding:20px;border:1px solid var(--g2);box-shadow:var(--sh)}
+.card-t{font-size:11.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--g5);margin-bottom:11px}
+.card.dash{border:2px dashed var(--pul);background:var(--pup)}
 
 /* ── TABLE ── */
-.table-wrap{overflow-x:auto;border-radius:var(--rs)}
-table{width:100%;border-collapse:collapse;font-size:12.5px}
-thead th{
-  background:var(--purple-pale);color:var(--purple);
-  font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;
-  padding:9px 12px;text-align:right;white-space:nowrap
-}
+.tw{overflow-x:auto;border-radius:var(--rs)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--pup);color:var(--pu);font-weight:700;font-size:10px;
+  text-transform:uppercase;letter-spacing:.4px;padding:8px 11px;
+  text-align:right;white-space:nowrap}
 thead th:first-child{text-align:left}
-tbody tr{border-bottom:1px solid var(--g200);transition:background .1s}
-tbody tr:hover{background:var(--g100)}
-tbody td{padding:9px 12px;text-align:right;color:var(--g700);white-space:nowrap}
-tbody td:first-child{text-align:left;font-weight:600;color:var(--g900)}
-.td-pos{color:var(--green)!important;font-weight:700}
-.td-neg{color:var(--red)!important;font-weight:700}
-.td-pu{color:var(--purple)!important;font-weight:700}
-.td-bold{font-weight:700}
-tr.row-total{background:var(--g100)}
-tr.row-total td{font-weight:700;border-top:2px solid var(--purple-mid)}
+tbody tr{border-bottom:1px solid var(--g2);transition:background .1s}
+tbody tr:hover{background:var(--g1)}
+tbody td{padding:8px 11px;text-align:right;color:var(--g7);white-space:nowrap}
+tbody td:first-child{text-align:left;font-weight:600;color:var(--g9)}
+.p{color:var(--gr)!important;font-weight:700} .n{color:var(--re)!important;font-weight:700}
+.pu{color:var(--pu)!important;font-weight:700}
+tr.rt{background:var(--g1)} tr.rt td{font-weight:700;border-top:2px solid var(--pum)}
 
 /* ── INPUTS ── */
-.inputs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
-.inp-group{display:flex;flex-direction:column;gap:4px}
-.inp-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--g700)}
-.inp-wrap{position:relative}
-.inp-prefix{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:600;color:var(--g500);pointer-events:none}
-.inp-field{
-  width:100%;padding:9px 12px;border:1.5px solid var(--g300);
-  border-radius:var(--rs);font-family:var(--font);font-size:13px;
-  color:var(--g900);background:var(--white);outline:none;transition:border-color .15s,box-shadow .15s
-}
-.inp-field.has-prefix{padding-left:26px}
-.inp-field:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(123,47,190,.1)}
-select.inp-field{cursor:pointer}
+.ig{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:11px}
+.igrp{display:flex;flex-direction:column;gap:4px}
+.ilbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--g7)}
+.iw{position:relative}
+.ipfx{position:absolute;left:9px;top:50%;transform:translateY(-50%);
+  font-size:12.5px;font-weight:600;color:var(--g5);pointer-events:none}
+.if{width:100%;padding:8px 11px;border:1.5px solid var(--g3);border-radius:var(--rs);
+  font-family:var(--f);font-size:12.5px;color:var(--g9);background:var(--wh);
+  outline:none;transition:border-color .15s,box-shadow .15s}
+.if.pfx{padding-left:24px}
+.if:focus{border-color:var(--pu);box-shadow:0 0 0 3px rgba(123,47,190,.1)}
+select.if{cursor:pointer}
 
-.alert{
-  background:var(--purple-pale);border-left:4px solid var(--purple);
-  border-radius:var(--rs);padding:11px 14px;font-size:13px;color:var(--purple);
-  margin-bottom:18px;font-weight:500;line-height:1.5
-}
-.recalc-note{
-  background:var(--g100);border:1px solid var(--g200);border-radius:var(--rs);
-  padding:9px 12px;font-size:12px;color:var(--g700);margin-top:12px;
-  display:flex;align-items:center;gap:6px
-}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.alert{background:var(--pup);border-left:4px solid var(--pu);border-radius:var(--rs);
+  padding:10px 13px;font-size:12.5px;color:var(--pu);margin-bottom:16px;font-weight:500;line-height:1.5}
+.rnote{background:var(--g1);border:1px solid var(--g2);border-radius:var(--rs);
+  padding:8px 11px;font-size:11.5px;color:var(--g7);margin-top:11px;
+  display:flex;align-items:center;gap:5px}
+.acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
 
 /* ── FOOTER ── */
-.footer{
-  background:var(--white);border-top:1px solid var(--g200);
-  padding:12px 28px;font-size:11px;color:var(--g500);
-  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px
-}
+.footer{background:var(--wh);border-top:1px solid var(--g2);padding:11px 26px;
+  font-size:11px;color:var(--g5);display:flex;justify-content:space-between;
+  align-items:center;flex-wrap:wrap;gap:5px}
 
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
-  .sidebar{position:fixed;transform:translateX(-100%)}
+  .sidebar{position:fixed;transform:translateX(-100%);box-shadow:none}
   .sidebar.open{transform:translateX(0);box-shadow:0 0 40px rgba(0,0,0,.2)}
-  .hamburger{display:block}
-  .page{padding:16px 14px 32px}
-  .topbar{padding:12px 14px}
-  .charts-grid{grid-template-columns:1fr}
+  .hbg{display:block}
+  .page{padding:14px 12px 30px}
+  .topbar{padding:11px 14px}
+  .cg2{grid-template-columns:1fr}
 }
-@media(max-width:580px){
-  .kpi-grid{grid-template-columns:repeat(2,1fr)}
-  .inputs-grid{grid-template-columns:repeat(2,1fr)}
-  .kpi-val{font-size:20px}
+@media(max-width:560px){
+  .kg{grid-template-columns:repeat(2,1fr)}
+  .ig{grid-template-columns:repeat(2,1fr)}
+  .kv{font-size:18px}
 }
 </style>
 </head>
 <body>
 <div class="layout">
 
-<!-- ══════════════════ SIDEBAR ══════════════════ -->
+<!-- ══════ SIDEBAR ══════ -->
 <nav class="sidebar" id="sidebar">
   <div class="sb-logo">
-    <div class="wordmark">sta<span>bo</span>lut</div>
+    <div class="sb-wm">sta<b>bo</b>lut</div>
     <div class="sb-badge">$10M Round · 2026–2029</div>
   </div>
   <div class="sb-nav">
     <div class="nav-sep">Principal</div>
-    <button class="nav-btn active" data-page="dashboard"><span class="ic">📊</span>Dashboard</button>
-    <button class="nav-btn" data-page="users"><span class="ic">👥</span>Usuarios / Clientes</button>
-    <button class="nav-btn" data-page="costs"><span class="ic">💰</span>Costes Operativos</button>
-    <button class="nav-btn" data-page="taxes"><span class="ic">🏛️</span>Impuestos</button>
+    <button class="nb active" data-page="dashboard"><span class="ic">📊</span>Dashboard</button>
+    <button class="nb" data-page="users"><span class="ic">👥</span>Usuarios / Clientes</button>
+    <button class="nb" data-page="costs"><span class="ic">💰</span>Costes Operativos</button>
+    <button class="nb" data-page="taxes"><span class="ic">🏛️</span>Impuestos</button>
     <div class="nav-sep">Análisis</div>
-    <button class="nav-btn" data-page="kpis"><span class="ic">🎯</span>KPIs Estratégicos</button>
-    <button class="nav-btn" data-page="forecast"><span class="ic">📈</span>Forecast 5 Años</button>
+    <button class="nb" data-page="kpis"><span class="ic">🎯</span>KPIs Estratégicos</button>
+    <button class="nb" data-page="forecast"><span class="ic">📈</span>Forecast 5 Años</button>
     <div class="nav-sep">Exportar</div>
-    <button class="nav-btn" onclick="exportExcel()"><span class="ic">📥</span>Excel (.xlsx)</button>
-    <button class="nav-btn" onclick="exportCSV()"><span class="ic">📄</span>CSV</button>
-    <button class="nav-btn" onclick="window.print()"><span class="ic">🖨️</span>PDF / Imprimir</button>
+    <button class="nb" onclick="doExportExcel()"><span class="ic">📥</span>Excel (.xlsx)</button>
+    <button class="nb" onclick="doExportCSV()"><span class="ic">📄</span>CSV</button>
+    <button class="nb" onclick="window.print()"><span class="ic">🖨️</span>PDF / Imprimir</button>
   </div>
 </nav>
 
-<!-- ══════════════════ MAIN ══════════════════ -->
+<!-- ══════ MAIN ══════ -->
 <div class="main">
-
-  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-left">
-      <button class="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+    <div class="tl">
+      <button class="hbg" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
       <div>
         <h1 id="page-title">📊 Overview Dashboard</h1>
-        <div class="sub" id="page-sub">Escenario $10M Round · <span id="today-date"></span></div>
+        <div class="tsub">Escenario $10M Round · <span id="hdate"></span></div>
       </div>
     </div>
-    <div class="topbar-right">
-      <button class="btn btn-out" onclick="recalcAll()">🔄 Recalcular</button>
-      <button class="btn btn-pri" onclick="exportExcel()">⬇ Excel</button>
-      <button class="btn btn-ghost" onclick="exportCSV()">⬇ CSV</button>
+    <div class="tr">
+      <button class="btn bo" onclick="recalcAll()">🔄 Recalcular</button>
+      <button class="btn bp" onclick="doExportExcel()">⬇ Excel</button>
+      <button class="btn bg" onclick="doExportCSV()">⬇ CSV</button>
     </div>
   </div>
 
-  <!-- ═══════════ PAGE: DASHBOARD ═══════════ -->
+  <!-- ════ PAGE: DASHBOARD ════ -->
   <div id="page-dashboard" class="page active">
-
-    <div class="kpi-grid" id="kpi-row"></div>
-
-    <div class="charts-grid">
-      <div class="chart-card wide">
-        <div class="chart-hdr">
-          <div><div class="chart-title">📈 Revenue vs OpEx vs Net Income — Trimestral</div>
-          <div class="chart-sub">$000s · 2026–2029</div></div>
-        </div>
-        <div class="chart-wrap"><canvas id="cMain"></canvas></div>
+    <div class="kg" id="kpi-dash"></div>
+    <div class="cg2">
+      <div class="cc wide">
+        <div class="ch"><div>
+          <div class="ct">📈 Revenue vs OpEx vs Net Income — Trimestral</div>
+          <div class="csub">$000s · Q1 2026 – Q4 2029</div>
+        </div></div>
+        <div class="cw" style="height:260px"><canvas id="cMain"></canvas></div>
       </div>
     </div>
-
-    <div class="charts-grid">
-      <div class="chart-card">
-        <div class="chart-hdr"><div><div class="chart-title">💎 AuM / TVL Growth</div>
-        <div class="chart-sub">$000s trimestral</div></div></div>
-        <div class="chart-wrap"><canvas id="cAum"></canvas></div>
+    <div class="cg2">
+      <div class="cc">
+        <div class="ch"><div><div class="ct">💎 AuM / TVL Growth</div><div class="csub">$000s trimestral</div></div></div>
+        <div class="cw"><canvas id="cAum"></canvas></div>
       </div>
-      <div class="chart-card">
-        <div class="chart-hdr"><div><div class="chart-title">💰 Desglose de Costes 2026</div>
-        <div class="chart-sub">Distribución anual</div></div></div>
-        <div class="chart-wrap"><canvas id="cCosts"></canvas></div>
+      <div class="cc">
+        <div class="ch"><div><div class="ct">💰 Desglose Costes 2026</div><div class="csub">Distribución anual</div></div></div>
+        <div class="cw"><canvas id="cCosts"></canvas></div>
       </div>
-      <div class="chart-card">
-        <div class="chart-hdr"><div><div class="chart-title">💵 Cash Balance Evolution</div>
-        <div class="chart-sub">$000s acumulado</div></div></div>
-        <div class="chart-wrap"><canvas id="cCash"></canvas></div>
+      <div class="cc">
+        <div class="ch"><div><div class="ct">💵 Cash Balance Evolution</div><div class="csub">$000s acumulado</div></div></div>
+        <div class="cw"><canvas id="cCash"></canvas></div>
       </div>
     </div>
-
-    <div class="sec-title">📋 P&amp;L Trimestral Completo</div>
-    <div class="card" style="padding:0">
-      <div class="table-wrap"><table><thead id="pl-head"></thead><tbody id="pl-body"></tbody></table></div>
-    </div>
+    <div class="st">📋 P&amp;L Trimestral Completo</div>
+    <div class="card" style="padding:0"><div class="tw"><table><thead id="pl-h"></thead><tbody id="pl-b"></tbody></table></div></div>
   </div>
 
-  <!-- ═══════════ PAGE: USERS ═══════════ -->
+  <!-- ════ PAGE: USERS ════ -->
   <div id="page-users" class="page">
-    <div class="alert">✏️ <strong>Modo edición:</strong> Modifica el número de usuarios por trimestre. Los cambios recalcularán automáticamente todo el modelo (AuM, Revenue, Net Income, Cash).</div>
-    <div class="card dashed" style="margin-bottom:20px">
-      <div class="card-title">👥 Usuarios por Trimestre — Entrada Manual</div>
-      <div class="inputs-grid" id="user-inputs"></div>
-      <div class="recalc-note">🔄 Cualquier cambio actualiza el Dashboard y KPIs al instante. El AuM se recalcula proporcionalmente a los usuarios.</div>
-      <div class="actions">
-        <button class="btn btn-pri" onclick="recalcAll()">🔄 Recalcular Todo</button>
-        <button class="btn btn-ghost" onclick="resetUsers()">↩ Restaurar Originales</button>
+    <div class="alert">✏️ <strong>Modo edición:</strong> Modifica usuarios por trimestre. Los cambios recalculan todo el modelo (AuM proporcional, Revenue, Net Income, Cash Balance).</div>
+    <div class="card dash" style="margin-bottom:18px">
+      <div class="card-t">👥 Usuarios por Trimestre — Entrada Manual</div>
+      <div class="ig" id="user-inp"></div>
+      <div class="rnote">🔄 Cada cambio actualiza el modelo completo. El AuM se recalcula proporcionalmente a los usuarios introducidos.</div>
+      <div class="acts">
+        <button class="btn bp" onclick="recalcAll()">🔄 Recalcular Todo</button>
+        <button class="btn bg" onclick="resetUsers()">↩ Restaurar Originales</button>
       </div>
     </div>
-    <div class="charts-grid">
-      <div class="chart-card">
-        <div class="chart-title" style="margin-bottom:14px">👤 Usuarios por Trimestre</div>
-        <div class="chart-wrap"><canvas id="cUsers"></canvas></div>
+    <div class="cg2">
+      <div class="cc">
+        <div class="ct" style="margin-bottom:13px">👤 Usuarios por Trimestre</div>
+        <div class="cw"><canvas id="cUsers"></canvas></div>
       </div>
-      <div class="chart-card">
-        <div class="chart-title" style="margin-bottom:14px">💎 AuM por Usuario ($K medio)</div>
-        <div class="chart-wrap"><canvas id="cAumUser"></canvas></div>
+      <div class="cc">
+        <div class="ct" style="margin-bottom:13px">💎 AuM por Usuario ($K medio)</div>
+        <div class="cw"><canvas id="cAumU"></canvas></div>
       </div>
     </div>
-    <div class="sec-title">📊 Tabla Usuarios &amp; AuM</div>
-    <div class="card" style="padding:0">
-      <div class="table-wrap"><table><thead id="users-head"></thead><tbody id="users-body"></tbody></table></div>
-    </div>
+    <div class="st">📊 Tabla Usuarios &amp; AuM</div>
+    <div class="card" style="padding:0"><div class="tw"><table><thead id="usr-h"></thead><tbody id="usr-b"></tbody></table></div></div>
   </div>
 
-  <!-- ═══════════ PAGE: COSTS ═══════════ -->
+  <!-- ════ PAGE: COSTS ════ -->
   <div id="page-costs" class="page">
-    <div class="alert">✏️ <strong>Ajuste de Gastos:</strong> Introduce valores adicionales (+) o ahorros (-) sobre el OpEx base. Los cambios actualizan Net Income y Cash Balance. Valores en $000s.</div>
-    <div class="card dashed" style="margin-bottom:20px">
-      <div class="card-title">💸 Ajuste Manual de Gastos por Trimestre ($000s)</div>
-      <div class="inputs-grid" id="cost-inputs"></div>
-      <div class="recalc-note">ℹ️ Positivo = gasto adicional / Negativo = ahorro o reducción de costes</div>
-      <div class="actions">
-        <button class="btn btn-pri" onclick="recalcAll()">🔄 Recalcular Todo</button>
-        <button class="btn btn-ghost" onclick="resetCosts()">↩ Limpiar Ajustes</button>
+    <div class="alert">✏️ <strong>Ajuste de Gastos:</strong> Introduce ajustes adicionales (+) o ahorros (-) sobre el OpEx base. Valores en $000s.</div>
+    <div class="card dash" style="margin-bottom:18px">
+      <div class="card-t">💸 Ajuste Manual de Gastos por Trimestre ($000s)</div>
+      <div class="ig" id="cost-inp"></div>
+      <div class="rnote">ℹ️ Positivo = gasto extra. Negativo = ahorro. Se suma al OpEx base y recalcula Net Income y Cash.</div>
+      <div class="acts">
+        <button class="btn bp" onclick="recalcAll()">🔄 Recalcular Todo</button>
+        <button class="btn bg" onclick="resetCosts()">↩ Limpiar Ajustes</button>
       </div>
     </div>
-    <div class="sec-title">📊 Estructura de Costes Completa</div>
-    <div class="card" style="padding:0">
-      <div class="table-wrap"><table><thead id="costs-head"></thead><tbody id="costs-body"></tbody></table></div>
-    </div>
+    <div class="st">📊 Estructura de Costes Completa</div>
+    <div class="card" style="padding:0"><div class="tw"><table><thead id="cost-h"></thead><tbody id="cost-b"></tbody></table></div></div>
   </div>
 
-  <!-- ═══════════ PAGE: TAXES ═══════════ -->
+  <!-- ════ PAGE: TAXES ════ -->
   <div id="page-taxes" class="page">
-    <div class="alert">🏛️ <strong>Calculadora Fiscal:</strong> Configura los tipos impositivos por país/jurisdicción para calcular los pagos trimestrales. Solo se aplica impuesto en trimestres con Net Income positivo.</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-bottom:20px">
+    <div class="alert">🏛️ <strong>Calculadora Fiscal:</strong> Configura tipos impositivos por jurisdicción. Solo aplica en trimestres con Net Income positivo.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px;margin-bottom:18px">
       <div class="card">
-        <div class="card-title">🇪🇸 España — Parámetros Fiscales</div>
-        <div class="inp-group" style="margin-bottom:10px">
-          <label class="inp-lbl">Impuesto de Sociedades (%)</label>
-          <div class="inp-wrap"><span class="inp-prefix">%</span>
-            <input class="inp-field has-prefix" id="tax-es-corp" type="number" value="25" min="0" max="100" step=".5" oninput="recalcTax()"></div>
-        </div>
-        <div class="inp-group" style="margin-bottom:10px">
-          <label class="inp-lbl">IVA (%)</label>
-          <div class="inp-wrap"><span class="inp-prefix">%</span>
-            <input class="inp-field has-prefix" id="tax-es-iva" type="number" value="21" min="0" max="30" step=".5" oninput="recalcTax()"></div>
-        </div>
-        <div class="inp-group" style="margin-bottom:10px">
-          <label class="inp-lbl">Retención sobre dividendos (%)</label>
-          <div class="inp-wrap"><span class="inp-prefix">%</span>
-            <input class="inp-field has-prefix" id="tax-es-div" type="number" value="19" min="0" max="30" step=".5" oninput="recalcTax()"></div>
-        </div>
-        <div class="inp-group">
-          <label class="inp-lbl">Método pagos fraccionados</label>
-          <select class="inp-field" id="tax-es-method" onchange="recalcTax()">
-            <option value="0.18">Método 1 — 18% cuota íntegra año anterior</option>
-            <option value="0.40" selected>Método 2 — 40% resultado fiscal acumulado</option>
-          </select>
-        </div>
+        <div class="card-t">🇪🇸 España — Parámetros Fiscales</div>
+        <div class="igrp" style="margin-bottom:9px"><label class="ilbl">Impuesto Sociedades (%)</label>
+          <div class="iw"><span class="ipfx">%</span><input class="if pfx" id="tx-es-c" type="number" value="25" min="0" max="100" step=".5" oninput="recalcTax()"></div></div>
+        <div class="igrp" style="margin-bottom:9px"><label class="ilbl">IVA (%)</label>
+          <div class="iw"><span class="ipfx">%</span><input class="if pfx" id="tx-es-v" type="number" value="21" min="0" max="30" step=".5" oninput="recalcTax()"></div></div>
+        <div class="igrp" style="margin-bottom:9px"><label class="ilbl">Retención Dividendos (%)</label>
+          <div class="iw"><span class="ipfx">%</span><input class="if pfx" id="tx-es-d" type="number" value="19" min="0" max="30" step=".5" oninput="recalcTax()"></div></div>
+        <div class="igrp"><label class="ilbl">Método Pagos Fraccionados</label>
+          <select class="if" id="tx-es-m" onchange="recalcTax()">
+            <option value="0.18">Método 1 — 18% cuota año anterior</option>
+            <option value="0.40" selected>Método 2 — 40% resultado fiscal</option>
+          </select></div>
       </div>
       <div class="card">
-        <div class="card-title">🌍 Jurisdicción Alternativa</div>
-        <div class="inp-group" style="margin-bottom:10px">
-          <label class="inp-lbl">País / Jurisdicción</label>
-          <input class="inp-field" id="tax-other-name" type="text" value="UAE / Cayman Islands" oninput="recalcTax()">
-        </div>
-        <div class="inp-group" style="margin-bottom:10px">
-          <label class="inp-lbl">Corporate Tax (%)</label>
-          <div class="inp-wrap"><span class="inp-prefix">%</span>
-            <input class="inp-field has-prefix" id="tax-other-corp" type="number" value="9" min="0" max="100" step=".5" oninput="recalcTax()"></div>
-        </div>
-        <div class="inp-group" style="margin-bottom:10px">
-          <label class="inp-lbl">Withholding Tax (%)</label>
-          <div class="inp-wrap"><span class="inp-prefix">%</span>
-            <input class="inp-field has-prefix" id="tax-other-wh" type="number" value="0" min="0" max="50" step=".5" oninput="recalcTax()"></div>
-        </div>
-        <div class="inp-group">
-          <label class="inp-lbl">Tipo efectivo estimado (%)</label>
-          <div class="inp-wrap"><span class="inp-prefix">%</span>
-            <input class="inp-field has-prefix" id="tax-other-eff" type="number" value="9" min="0" max="100" step=".5" oninput="recalcTax()"></div>
-        </div>
+        <div class="card-t">🌍 Jurisdicción Alternativa</div>
+        <div class="igrp" style="margin-bottom:9px"><label class="ilbl">País / Jurisdicción</label>
+          <input class="if" id="tx-ot-n" type="text" value="UAE / Cayman Islands" oninput="recalcTax()"></div>
+        <div class="igrp" style="margin-bottom:9px"><label class="ilbl">Corporate Tax (%)</label>
+          <div class="iw"><span class="ipfx">%</span><input class="if pfx" id="tx-ot-c" type="number" value="9" min="0" max="100" step=".5" oninput="recalcTax()"></div></div>
+        <div class="igrp" style="margin-bottom:9px"><label class="ilbl">Withholding Tax (%)</label>
+          <div class="iw"><span class="ipfx">%</span><input class="if pfx" id="tx-ot-w" type="number" value="0" min="0" max="50" step=".5" oninput="recalcTax()"></div></div>
+        <div class="igrp"><label class="ilbl">Tipo Efectivo Estimado (%)</label>
+          <div class="iw"><span class="ipfx">%</span><input class="if pfx" id="tx-ot-e" type="number" value="9" min="0" max="100" step=".5" oninput="recalcTax()"></div></div>
       </div>
       <div class="card">
-        <div class="card-title">⚠️ Notas Fiscales Importantes</div>
-        <div style="font-size:12.5px;color:var(--g700);line-height:1.75">
-          <p>🇪🇸 <strong>España:</strong> Pagos fraccionados en abril (P1), octubre (P3) y diciembre (P11). Liquidación definitiva mod. 200 en julio del año siguiente.</p><br>
-          <p>📋 <strong>Pérdidas (2026):</strong> Sin IS. Las BINs se compensan con beneficios futuros (art. 26 LIS, límite 70%). Pendiente acumulado = $5.19M.</p><br>
-          <p>🌐 <strong>Internacional:</strong> Aplicar convenios de doble imposición. Evaluar régimen ETVE para dividendos de subsidiarias extranjeras.</p><br>
-          <p>💡 <strong>Crypto/Stablecoin:</strong> Tributación según estructura societaria: rendimientos de capital mobiliario o actividad económica.</p>
+        <div class="card-t">⚠️ Notas Fiscales</div>
+        <div style="font-size:12px;color:var(--g7);line-height:1.8">
+          <p>🇪🇸 <b>España:</b> Pagos fracc. en abril (P1), octubre (P3) y diciembre (P11). Liquidación mod. 200 en julio siguiente.</p><br>
+          <p>📋 <b>Pérdidas 2026:</b> Sin IS. BINs compensables con beneficios futuros (art. 26 LIS, límite 70%).</p><br>
+          <p>🌐 <b>Internacional:</b> Aplicar convenios de doble imposición. Evaluar régimen ETVE para dividendos de subsidiarias.</p><br>
+          <p>💡 <b>Crypto/Stablecoin:</b> Tributación según estructura societaria (capital mobiliario o actividad económica).</p>
         </div>
       </div>
     </div>
-    <div class="sec-title">📊 Pagos Trimestrales de Impuestos</div>
-    <div class="card" style="padding:0;margin-bottom:20px">
-      <div class="table-wrap"><table><thead id="tax-head"></thead><tbody id="tax-body"></tbody></table></div>
-    </div>
-    <div class="charts-grid">
-      <div class="chart-card">
-        <div class="chart-title" style="margin-bottom:14px">🏛️ Carga Fiscal Estimada Anual ($000s)</div>
-        <div class="chart-wrap"><canvas id="cTax"></canvas></div>
+    <div class="st">📊 Pagos Trimestrales Estimados</div>
+    <div class="card" style="padding:0;margin-bottom:18px"><div class="tw"><table><thead id="tax-h"></thead><tbody id="tax-b"></tbody></table></div></div>
+    <div class="cg2">
+      <div class="cc">
+        <div class="ct" style="margin-bottom:13px">🏛️ Carga Fiscal Estimada por Año ($000s)</div>
+        <div class="cw"><canvas id="cTax"></canvas></div>
       </div>
     </div>
   </div>
 
-  <!-- ═══════════ PAGE: KPIs ═══════════ -->
+  <!-- ════ PAGE: KPIs ════ -->
   <div id="page-kpis" class="page">
-    <div class="kpi-grid" id="kpi-strategic"></div>
-    <div class="sec-title">📊 KPIs por Año</div>
-    <div class="card" style="padding:0;margin-bottom:20px">
-      <div class="table-wrap"><table><thead id="kpis-head"></thead><tbody id="kpis-body"></tbody></table></div>
-    </div>
-    <div class="charts-grid">
-      <div class="chart-card">
-        <div class="chart-title" style="margin-bottom:14px">📊 EBITDA Margin por Año (%)</div>
-        <div class="chart-wrap"><canvas id="cEbitda"></canvas></div>
+    <div class="kg" id="kpi-strat"></div>
+    <div class="st">📊 KPIs por Año</div>
+    <div class="card" style="padding:0;margin-bottom:18px"><div class="tw"><table><thead id="kpi-h"></thead><tbody id="kpi-b"></tbody></table></div></div>
+    <div class="cg2">
+      <div class="cc">
+        <div class="ct" style="margin-bottom:13px">📊 EBITDA Margin por Año (%)</div>
+        <div class="cw"><canvas id="cEbitda"></canvas></div>
       </div>
-      <div class="chart-card">
-        <div class="chart-title" style="margin-bottom:14px">🎯 Revenue Growth Rate (YoY %)</div>
-        <div class="chart-wrap"><canvas id="cGrowth"></canvas></div>
+      <div class="cc">
+        <div class="ct" style="margin-bottom:13px">🎯 Revenue Growth Rate (YoY %)</div>
+        <div class="cw"><canvas id="cGrowth"></canvas></div>
       </div>
     </div>
   </div>
 
-  <!-- ═══════════ PAGE: FORECAST ═══════════ -->
+  <!-- ════ PAGE: FORECAST ════ -->
   <div id="page-forecast" class="page">
-    <div class="alert">📅 Forecast completo 5 años (2026–2030). Datos reales hasta Q4 2029 + proyección 2030 calculada con +30% en Revenue.</div>
-    <div class="kpi-grid" id="forecast-kpis"></div>
-    <div class="sec-title">📈 Proyección 5 Años — Revenue, Net Income &amp; Cash</div>
-    <div class="chart-card" style="margin-bottom:20px">
-      <div class="chart-wrap" style="height:300px"><canvas id="cForecast"></canvas></div>
+    <div class="alert">📅 Forecast 5 años (2026–2030). Datos reales hasta Q4 2029 + proyección 2030 con +30% Revenue.</div>
+    <div class="kg" id="kpi-fc"></div>
+    <div class="st">📈 Proyección 5 Años</div>
+    <div class="cc" style="margin-bottom:18px">
+      <div class="cw" style="height:300px"><canvas id="cFc"></canvas></div>
     </div>
-    <div class="sec-title">📋 Tabla Anual Completa 2026–2030</div>
-    <div class="card" style="padding:0">
-      <div class="table-wrap"><table><thead id="fc-head"></thead><tbody id="fc-body"></tbody></table></div>
-    </div>
+    <div class="st">📋 Tabla Anual Completa 2026–2030</div>
+    <div class="card" style="padding:0"><div class="tw"><table><thead id="fc-h"></thead><tbody id="fc-b"></tbody></table></div></div>
   </div>
 
   <div class="footer">
-    <span>© 2026 Stabolut Financial Model v3.1 · Confidencial · Para uso interno e inversores</span>
-    <span>Datos en $000s · Escenario $10M Round · <span id="footer-date"></span></span>
+    <span>© 2026 Stabolut Financial Model v3.2 · Confidencial</span>
+    <span>$000s · Escenario $10M Round · <span id="fdate"></span></span>
   </div>
 </div><!-- /main -->
 </div><!-- /layout -->
 
 <script>
 'use strict';
-// ────────────────────────────────────────────────
-// BASE DATA ($ 000s)
-// ────────────────────────────────────────────────
-const QQ = ['Q1 2026','Q2 2026','Q3 2026','Q4 2026',
-            'Q1 2027','Q2 2027','Q3 2027','Q4 2027',
-            'Q1 2028','Q2 2028','Q3 2028','Q4 2028',
-            'Q1 2029','Q2 2029','Q3 2029','Q4 2029'];
 
-const BASE_USERS = [20,100,200,200,600,840,1176,1529,1987,2385,2862,3434,3778,4155,4571,5028];
-const BASE_AUM   = [20000,100000,200000,200000,600000,840000,1176000,1528800,1987440,2384928,2861914,3434296,3777726,4155499,4571048,5028153];
-const APR        = [.30,.30,.29,.29,.28,.27,.26,.25,.24,.23,.21,.20,.19,.18,.16,.16];
-const CAP_RAISE  = [5000,5000,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const MA         = [-1000,-2000,-1000,-1000,-2000,-4000,-4000,-4000,-4000,-4000,-4000,-4000,-4000,-4000,-4000,-4000];
+/* ════════════════════════════════════════════════
+   DATA
+════════════════════════════════════════════════ */
+const QQ=['Q1 2026','Q2 2026','Q3 2026','Q4 2026',
+          'Q1 2027','Q2 2027','Q3 2027','Q4 2027',
+          'Q1 2028','Q2 2028','Q3 2028','Q4 2028',
+          'Q1 2029','Q2 2029','Q3 2029','Q4 2029'];
 
-const BASE_COSTS = {
-  'Engineering & Dev':    [300,400,500,500,500,500,500,500,600,600,600,600,600,600,600,600],
-  'BD & Partnerships':    [140,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150],
-  'Marketing & Growth':   [2000,1500,2000,2500,2500,2500,2500,2500,2000,2000,1500,1500,1500,1500,1500,1500],
-  'Compliance & Legal':   [500,500,400,400,400,400,250,250,250,250,250,250,250,250,250,250],
-  'Ops & Infrastructure': [120,140,150,170,190,200,200,200,200,200,200,200,200,200,200,200],
-  'G&A':                  [30,40,50,60,70,70,70,70,70,70,70,70,70,70,70,70]
+const BU=[20,100,200,200,600,840,1176,1529,1987,2385,2862,3434,3778,4155,4571,5028];
+const BA=[20000,100000,200000,200000,600000,840000,1176000,1528800,1987440,2384928,2861914,3434296,3777726,4155499,4571048,5028153];
+const APR=[.30,.30,.29,.29,.28,.27,.26,.25,.24,.23,.21,.20,.19,.18,.16,.16];
+const CAP=[5000,5000,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+const MA=[-1000,-2000,-1000,-1000,-2000,-4000,-4000,-4000,-4000,-4000,-4000,-4000,-4000,-4000,-4000,-4000];
+const BC={
+  'Engineering & Dev':   [300,400,500,500,500,500,500,500,600,600,600,600,600,600,600,600],
+  'BD & Partnerships':   [140,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150],
+  'Marketing & Growth':  [2000,1500,2000,2500,2500,2500,2500,2500,2000,2000,1500,1500,1500,1500,1500,1500],
+  'Compliance & Legal':  [500,500,400,400,400,400,250,250,250,250,250,250,250,250,250,250],
+  'Ops & Infra':         [120,140,150,170,190,200,200,200,200,200,200,200,200,200,200,200],
+  'G&A':                 [30,40,50,60,70,70,70,70,70,70,70,70,70,70,70,70]
 };
 
-// ── Mutable state
-let userDelta = Array(16).fill(0);   // delta from base users
-let costAdj   = Array(16).fill(0);   // extra cost $K per quarter
+// mutable state
+let uDelta=Array(16).fill(0);
+let cAdj  =Array(16).fill(0);
 
-// ────────────────────────────────────────────────
-// COMPUTED
-// ────────────────────────────────────────────────
-function users(){ return BASE_USERS.map((u,i)=>Math.max(0, u+userDelta[i])); }
-function aum(){
-  const u=users();
-  return u.map((v,i)=>BASE_USERS[i]>0 ? Math.round(BASE_AUM[i]*(v/BASE_USERS[i])) : 0);
-}
-function revenue(){
-  return aum().map((a,i)=>Math.round(a*APR[i]*0.20/4));
-}
-function opex(){
-  return QQ.map((_,i)=>Object.values(BASE_COSTS).reduce((s,arr)=>s+arr[i],0)+costAdj[i]);
-}
-function netIncome(){ const r=revenue(),o=opex(); return r.map((v,i)=>v-o[i]); }
-function cashBalance(){
-  const net=netIncome(); let prev=0; const out=[];
-  for(let i=0;i<16;i++){ prev+=net[i]+CAP_RAISE[i]+MA[i]; out.push(Math.round(prev)); }
-  return out;
-}
-function annSum(arr,yr){ const s=yr*4; return arr.slice(s,s+4).reduce((a,b)=>a+b,0); }
+/* ════════════════════════════════════════════════
+   COMPUTED
+════════════════════════════════════════════════ */
+const users   =()=>BU.map((v,i)=>Math.max(0,v+uDelta[i]));
+const aum     =()=>users().map((v,i)=>BU[i]>0?Math.round(BA[i]*(v/BU[i])):0);
+const revenue =()=>aum().map((a,i)=>Math.round(a*APR[i]*0.20/4));
+const opex    =()=>QQ.map((_,i)=>Object.values(BC).reduce((s,a)=>s+a[i],0)+cAdj[i]);
+const netInc  =()=>{ const r=revenue(),o=opex(); return r.map((v,i)=>v-o[i]); };
+const cashBal =()=>{
+  const n=netInc(); let p=0; return n.map((v,i)=>{ p+=v+CAP[i]+MA[i]; return Math.round(p); });
+};
+const aSum=(a,y)=>a.slice(y*4,y*4+4).reduce((s,v)=>s+v,0);
 
-// ────────────────────────────────────────────────
-// FORMAT
-// ────────────────────────────────────────────────
+/* ════════════════════════════════════════════════
+   FORMAT
+════════════════════════════════════════════════ */
 function fmt(v){
-  if(v===null||v===undefined) return '—';
-  const abs=Math.abs(v);
-  const sign=v<0?'-':'';
-  if(abs>=1000000) return sign+'$'+(abs/1000000).toFixed(1)+'M';
-  if(abs>=1000)    return sign+'$'+(abs/1000).toFixed(0)+'K';
-  return sign+'$'+abs.toFixed(0);
+  if(v==null) return '—';
+  const s=v<0,a=Math.abs(v);
+  const str=a>=1e6?(a/1e6).toFixed(1)+'M':a>=1000?(a/1000).toFixed(0)+'K':a.toFixed(0);
+  return (s?'-':'')+'$'+str;
 }
 function fmtK(v){
-  if(v===null||v===undefined) return '—';
-  const neg=v<0; const abs=Math.abs(Math.round(v));
-  return (neg?'(':'')+' $'+abs.toLocaleString('es-ES')+(neg?')':'');
+  if(v==null) return '—';
+  const n=v<0,a=Math.abs(Math.round(v));
+  return (n?'(':'')+'$'+a.toLocaleString('es-ES')+(n?')':'');
 }
-function neg(v){ return v<0?'td-neg':v>0?'td-pos':''; }
+function nc(v){ return v>0?'p':v<0?'n':''; }  // css class suffix
 
-// ────────────────────────────────────────────────
-// NAVIGATION — lazy chart init on tab switch
-// ────────────────────────────────────────────────
-const PAGE_TITLES={
-  dashboard:'📊 Overview Dashboard',
-  users:'👥 Usuarios / Clientes',
-  costs:'💰 Costes Operativos',
-  taxes:'🏛️ Calculadora Fiscal',
-  kpis:'🎯 KPIs Estratégicos',
-  forecast:'📈 Forecast 5 Años'
+/* ════════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════════ */
+const TITLES={
+  dashboard:'📊 Overview Dashboard', users:'👥 Usuarios / Clientes',
+  costs:'💰 Costes Operativos',       taxes:'🏛️ Calculadora Fiscal',
+  kpis:'🎯 KPIs Estratégicos',        forecast:'📈 Forecast 5 Años'
 };
-let currentPage='dashboard';
+let curPage='dashboard';
 
-document.querySelectorAll('.nav-btn[data-page]').forEach(btn=>{
-  btn.addEventListener('click',()=>navTo(btn.dataset.page));
+document.querySelectorAll('.nb[data-page]').forEach(b=>{
+  b.addEventListener('click',()=>goTo(b.dataset.page));
 });
 
-function navTo(id){
-  if(id===currentPage) return;
+function goTo(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  document.querySelector(`.nav-btn[data-page="${id}"]`).classList.add('active');
-  document.getElementById('page-title').textContent=PAGE_TITLES[id]||id;
-  currentPage=id;
-  // Re-render charts for newly visible page (fixes display:none sizing issue)
-  requestAnimationFrame(()=>renderChartsFor(id));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  const pg=document.getElementById('page-'+id);
+  if(!pg) return;
+  pg.classList.add('active');
+  const nb=document.querySelector(`.nb[data-page="${id}"]`);
+  if(nb) nb.classList.add('active');
+  document.getElementById('page-title').textContent=TITLES[id]||id;
+  curPage=id;
+  // Defer chart rendering until the DOM is painted (fixes 0-size canvas bug)
+  requestAnimationFrame(()=>requestAnimationFrame(()=>drawChartsFor(id)));
 }
 
-function renderChartsFor(id){
-  if(id==='dashboard'){ renderMainChart(); renderAuMChart(); renderCostsChart(); renderCashChart(); }
-  if(id==='users')     { renderUsersChart(); renderAuMUserChart(); }
-  if(id==='kpis')      { renderEbitdaChart(); renderGrowthChart(); }
-  if(id==='taxes')     { recalcTax(); }
-  if(id==='forecast')  { renderForecastChart(); }
+/* ════════════════════════════════════════════════
+   CHART ENGINE
+   FIX: each render fn creates its own options object (no shared refs)
+   FIX: charts map keyed by canvas id - only one chart per canvas
+════════════════════════════════════════════════ */
+const CH={};  // chart instances
+
+function kill(id){ if(CH[id]){ CH[id].destroy(); delete CH[id]; } }
+
+// Build fresh options every time — no shared object references
+function mkOpts(yFmt){
+  return {
+    responsive:true,
+    maintainAspectRatio:false,
+    animation:{duration:600},
+    plugins:{
+      legend:{labels:{font:{family:'DM Sans',size:11},usePointStyle:true,padding:10,boxWidth:10}}
+    },
+    scales:{
+      x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},maxRotation:45}},
+      y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},
+          callback:yFmt||(v=>'$'+Math.round(v).toLocaleString())}}
+    }
+  };
 }
 
-// ────────────────────────────────────────────────
-// BUILD INPUT WIDGETS
-// ────────────────────────────────────────────────
+function mkOptsPct(){
+  const o=mkOpts(v=>v+'%');
+  return o;
+}
+
+const C={
+  pu:'rgba(123,47,190,1)',   puA:'rgba(123,47,190,.15)',
+  gr:'rgba(39,174,96,1)',    grA:'rgba(39,174,96,.15)',
+  re:'rgba(231,76,60,1)',    reA:'rgba(231,76,60,.15)',
+  go:'rgba(243,156,18,1)',   goA:'rgba(243,156,18,.15)',
+  te:'rgba(26,188,156,1)',   teA:'rgba(26,188,156,.15)'
+};
+
+// Quarter labels with line break for compact display
+const QL=QQ.map(q=>q.split(' '));
+
+/* ── Draw all charts for a given page tab ── */
+function drawChartsFor(id){
+  if(id==='dashboard'){ drawMain(); drawAuM(); drawCosts(); drawCash(); }
+  if(id==='users')     { drawUsers(); drawAuMU(); }
+  if(id==='kpis')      { drawEbitda(); drawGrowth(); }
+  if(id==='taxes')     { recalcTax(); }          // recalcTax calls drawTax internally
+  if(id==='forecast')  { drawForecast(); }
+}
+
+function drawMain(){
+  kill('cMain');
+  const r=revenue(),o=opex(),n=netInc();
+  CH['cMain']=new Chart(document.getElementById('cMain'),{
+    type:'bar',
+    data:{labels:QL,datasets:[
+      {label:'Revenue $K',   data:r, backgroundColor:C.grA,borderColor:C.gr,borderWidth:2,borderRadius:4,order:2},
+      {label:'OpEx $K',      data:o.map(v=>-v),backgroundColor:C.reA,borderColor:C.re,borderWidth:2,borderRadius:4,order:2},
+      {label:'Net Income $K',data:n, type:'line',borderColor:C.pu,backgroundColor:C.puA,
+        fill:true,tension:.4,pointBackgroundColor:n.map(v=>v>=0?C.gr:C.re),pointRadius:4,order:1}
+    ]},
+    options:{...mkOpts(),interaction:{mode:'index',intersect:false}}
+  });
+}
+
+function drawAuM(){
+  kill('cAum');
+  const a=aum();
+  CH['cAum']=new Chart(document.getElementById('cAum'),{
+    type:'line',
+    data:{labels:QL,datasets:[{
+      label:'AuM/TVL $K',data:a,
+      borderColor:C.pu,backgroundColor:C.puA,fill:true,tension:.4,
+      pointBackgroundColor:C.pu,pointRadius:3
+    }]},
+    options:mkOpts()
+  });
+}
+
+function drawCosts(){
+  kill('cCosts');
+  const labels=Object.keys(BC);
+  const vals=labels.map(k=>aSum(BC[k],0));
+  CH['cCosts']=new Chart(document.getElementById('cCosts'),{
+    type:'doughnut',
+    data:{labels,datasets:[{
+      data:vals,
+      backgroundColor:[C.pu,C.gr,C.re,C.go,C.te,'rgba(52,152,219,.85)'],
+      borderWidth:2,borderColor:'#fff',hoverOffset:6
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,animation:{duration:600},
+      plugins:{legend:{position:'right',labels:{font:{size:10},padding:8,boxWidth:12}}}
+    }
+  });
+}
+
+function drawCash(){
+  kill('cCash');
+  const cb=cashBal();
+  CH['cCash']=new Chart(document.getElementById('cCash'),{
+    type:'line',
+    data:{labels:QL,datasets:[{
+      label:'Cash Balance $K',data:cb,
+      borderColor:C.te,backgroundColor:C.teA,fill:true,tension:.4,
+      pointBackgroundColor:cb.map(v=>v>=0?C.te:C.re),pointRadius:4
+    }]},
+    options:mkOpts()
+  });
+}
+
+function drawUsers(){
+  kill('cUsers');
+  const u=users();
+  CH['cUsers']=new Chart(document.getElementById('cUsers'),{
+    type:'bar',
+    data:{labels:QL,datasets:[{
+      label:'Usuarios',data:u,
+      backgroundColor:C.puA,borderColor:C.pu,borderWidth:2,borderRadius:6
+    }]},
+    options:mkOpts(v=>v.toLocaleString())
+  });
+}
+
+function drawAuMU(){
+  kill('cAumU');
+  const u=users(),a=aum();
+  const apu=u.map((v,i)=>v>0?Math.round(a[i]/v):0);
+  CH['cAumU']=new Chart(document.getElementById('cAumU'),{
+    type:'line',
+    data:{labels:QL,datasets:[{
+      label:'AuM/Usuario $K',data:apu,
+      borderColor:C.go,backgroundColor:C.goA,fill:true,tension:.4,
+      pointBackgroundColor:C.go,pointRadius:4
+    }]},
+    options:mkOpts()
+  });
+}
+
+function drawEbitda(){
+  kill('cEbitda');
+  const r=revenue(),n=netInc();
+  const yr=['2026','2027','2028','2029'];
+  const m=yr.map((_,i)=>{ const rv=aSum(r,i); return rv>0?+(aSum(n,i)/rv*100).toFixed(1):0; });
+  CH['cEbitda']=new Chart(document.getElementById('cEbitda'),{
+    type:'bar',
+    data:{labels:yr,datasets:[{
+      label:'EBITDA Margin %',data:m,
+      backgroundColor:m.map(v=>v>=0?C.grA:C.reA),
+      borderColor:m.map(v=>v>=0?C.gr:C.re),borderWidth:2,borderRadius:8
+    }]},
+    options:mkOptsPct()
+  });
+}
+
+function drawGrowth(){
+  kill('cGrowth');
+  const r=revenue();
+  const yr=['2026','2027','2028','2029'];
+  const rv=yr.map((_,i)=>aSum(r,i));
+  const g=rv.map((v,i)=>i>0?+(((v-rv[i-1])/Math.abs(rv[i-1]))*100).toFixed(1):0);
+  CH['cGrowth']=new Chart(document.getElementById('cGrowth'),{
+    type:'line',
+    data:{labels:yr,datasets:[{
+      label:'Revenue YoY %',data:g,
+      borderColor:C.pu,backgroundColor:C.puA,fill:true,tension:.4,
+      pointBackgroundColor:C.pu,pointRadius:6
+    }]},
+    options:mkOptsPct()
+  });
+}
+
+function drawTax(payES,payOt){
+  kill('cTax');
+  const yr=['2026','2027','2028','2029'];
+  const es=yr.map((_,i)=>Math.abs(aSum(payES,i)));
+  const ot=yr.map((_,i)=>Math.abs(aSum(payOt,i)));
+  CH['cTax']=new Chart(document.getElementById('cTax'),{
+    type:'bar',
+    data:{labels:yr,datasets:[
+      {label:'🇪🇸 IS España $K',data:es,backgroundColor:C.puA,borderColor:C.pu,borderWidth:2,borderRadius:6},
+      {label:'🌍 Tax Alt. $K', data:ot,backgroundColor:C.goA,borderColor:C.go,borderWidth:2,borderRadius:6}
+    ]},
+    options:mkOpts()
+  });
+}
+
+function drawForecast(){
+  kill('cFc');
+  // Compute the forecast data fresh
+  const r=revenue(),o=opex(),n=netInc(),cb=cashBal();
+  const yr=['2026','2027','2028','2029'];
+  const Y=yr.map((_,i)=>({rev:aSum(r,i),net:aSum(n,i),cash:cb[i*4+3]}));
+  const rev30=Math.round(Y[3].rev*1.30);
+  const opx30=Math.round(aSum(o,3)*1.05);
+  const net30=rev30-opx30;
+  const csh30=cb[15]+net30+MA[15];
+
+  const labels=['2026','2027','2028','2029','2030E'];
+  const revY=Y.map(y=>y.rev).concat([rev30]);
+  const netY=Y.map(y=>y.net).concat([net30]);
+  const cshY=Y.map(y=>y.cash).concat([csh30]);
+
+  CH['cFc']=new Chart(document.getElementById('cFc'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Revenue $K',data:revY,backgroundColor:C.grA,borderColor:C.gr,borderWidth:2,borderRadius:6,order:2},
+      {label:'Net Income $K',data:netY,
+        backgroundColor:netY.map(v=>v>=0?C.puA:C.reA),
+        borderColor:netY.map(v=>v>=0?C.pu:C.re),borderWidth:2,borderRadius:6,order:2},
+      {label:'Cash Balance $K',data:cshY,type:'line',
+        borderColor:C.te,backgroundColor:'transparent',tension:.4,
+        pointBackgroundColor:cshY.map(v=>v>=0?C.te:C.re),pointRadius:6,order:1}
+    ]},
+    options:{...mkOpts(),interaction:{mode:'index',intersect:false}}
+  });
+}
+
+/* ════════════════════════════════════════════════
+   TABLE RENDERERS
+════════════════════════════════════════════════ */
+function renderPL(){
+  const r=revenue(),o=opex(),n=netInc(),cb=cashBal(),a=aum(),u=users();
+  const th=QQ.map(q=>`<th>${q.replace(' ','<br>')}</th>`).join('');
+  document.getElementById('pl-h').innerHTML=`<tr><th>Partida ($000s)</th>${th}</tr>`;
+  const rows=[
+    {l:'👥 Usuarios',      d:u,  cf:()=>''},
+    {l:'💎 AuM / TVL',     d:a,  cf:()=>'pu'},
+    {l:'APR (%)',           d:APR.map(v=>(v*100).toFixed(0)+'%'), cf:()=>'',raw:true},
+    {l:'✅ Protocol Revenue',d:r, cf:()=>'p'},
+    {l:'Total OpEx',        d:o,  cf:()=>'n'},
+    {l:'📊 NET INCOME',     d:n,  cf:v=>nc(v), bold:true},
+    {l:'Capital Raise',     d:CAP,cf:v=>v?'pu':''},
+    {l:'M&amp;A',           d:MA, cf:()=>'n'},
+    {l:'💵 Cash Balance',   d:cb, cf:v=>nc(v), bold:true}
+  ];
+  document.getElementById('pl-b').innerHTML=rows.map(row=>{
+    const cells=row.d.map((v,i)=>{
+      const cl=row.cf(v); const disp=row.raw?v:(typeof v==='number'?fmtK(v):v);
+      return `<td class="${cl}">${disp}</td>`;
+    }).join('');
+    return `<tr${row.bold?' style="font-weight:700"':''}><td>${row.l}</td>${cells}</tr>`;
+  }).join('');
+}
+
+function renderCostsTable(){
+  const o=opex();
+  const qs=QQ.map(q=>q.slice(0,2)+q.slice(-2));
+  const th=qs.map(q=>`<th>${q}</th>`).join('');
+  document.getElementById('cost-h').innerHTML=`<tr><th>Partida ($000s)</th>${th}<th>Tot 26</th><th>Tot 27</th><th>Tot 28</th><th>Tot 29</th></tr>`;
+  let html='';
+  for(const[k,v] of Object.entries(BC)){
+    const cells=v.map(x=>`<td>${fmtK(x)}</td>`).join('');
+    const tots=[0,1,2,3].map(y=>`<td class="n">${fmtK(aSum(v,y))}</td>`).join('');
+    html+=`<tr><td>${k}</td>${cells}${tots}</tr>`;
+  }
+  const ac=cAdj.map((v,i)=>`<td class="${v>0?'n':v<0?'p':''}">${v!==0?fmtK(v):'—'}</td>`).join('');
+  const at=[0,1,2,3].map(y=>`<td class="${aSum(cAdj,y)>0?'n':aSum(cAdj,y)<0?'p':''}">${aSum(cAdj,y)!==0?fmtK(aSum(cAdj,y)):'—'}</td>`).join('');
+  html+=`<tr style="background:var(--pup)"><td>✏️ Ajustes Manuales</td>${ac}${at}</tr>`;
+  const tc=o.map(v=>`<td class="n"><strong>${fmtK(v)}</strong></td>`).join('');
+  const tt=[0,1,2,3].map(y=>`<td class="n"><strong>${fmtK(aSum(o,y))}</strong></td>`).join('');
+  html+=`<tr class="rt"><td>TOTAL OpEx</td>${tc}${tt}</tr>`;
+  document.getElementById('cost-b').innerHTML=html;
+}
+
+function renderUsersTable(){
+  const u=users(),a=aum(),r=revenue();
+  const th=QQ.map(q=>`<th>${q.replace(' ','<br>')}</th>`).join('');
+  document.getElementById('usr-h').innerHTML=`<tr><th>Métrica</th>${th}</tr>`;
+  document.getElementById('usr-b').innerHTML=[
+    {l:'👥 Usuarios',      d:u, fn:v=>v.toLocaleString(), cf:()=>''},
+    {l:'💎 AuM/TVL ($K)',  d:a, fn:fmtK, cf:()=>'pu'},
+    {l:'📈 Revenue ($K)',  d:r, fn:fmtK, cf:()=>'p'}
+  ].map(row=>`<tr><td>${row.l}</td>${row.d.map(v=>`<td class="${row.cf(v)}">${row.fn(v)}</td>`).join('')}</tr>`).join('');
+}
+
+function renderKPIsPage(){
+  const r=revenue(),o=opex(),n=netInc(),a=aum(),u=users(),cb=cashBal();
+  const yrs=['2026','2027','2028','2029'];
+  const Y=yrs.map((_,i)=>({
+    rev:aSum(r,i),opex:aSum(o,i),net:aSum(n,i),
+    aum:Math.max(...a.slice(i*4,i*4+4)),
+    usr:Math.max(...u.slice(i*4,i*4+4)),
+    cash:cb[i*4+3]
+  }));
+  const bk=n.findIndex(v=>v>0);
+
+  document.getElementById('kpi-strat').innerHTML=`
+    <div class="kc cp"><span class="ki">🚀</span>
+      <div class="kl">Breakeven Quarter</div>
+      <div class="kv" style="font-size:17px">${bk>=0?QQ[bk]:'TBD'}</div>
+      <div class="kd pos">Primer trimestre positivo</div></div>
+    <div class="kc cg"><span class="ki">💰</span>
+      <div class="kl">Revenue 2027</div>
+      <div class="kv">${fmt(Y[1].rev)}</div>
+      <div class="kd pos">↑ +${((Y[1].rev-Y[0].rev)/Math.abs(Y[0].rev)*100).toFixed(0)}% vs 2026</div></div>
+    <div class="kc co"><span class="ki">🎯</span>
+      <div class="kl">Max Cash Balance</div>
+      <div class="kv">${fmt(Math.max(...cb))}</div>
+      <div class="kd pos">En ${QQ[cb.indexOf(Math.max(...cb))]}</div></div>
+    <div class="kc ct"><span class="ki">👥</span>
+      <div class="kl">Usuarios 2029</div>
+      <div class="kv">${Y[3].usr.toLocaleString()}</div>
+      <div class="kd pos">↑ +${((Y[3].usr-Y[0].usr)/Y[0].usr*100).toFixed(0)}% vs 2026</div></div>`;
+
+  document.getElementById('kpi-h').innerHTML=`<tr><th>KPI</th>${yrs.map(y=>`<th>${y}</th>`).join('')}<th>CAGR 26→29</th></tr>`;
+  const krows=[
+    {l:'📈 Revenue ($K)',   vf:(y)=>fmtK(y.rev),  cf:()=>'p',    cagr:Y[3].rev/Y[0].rev},
+    {l:'💸 OpEx ($K)',      vf:(y)=>fmtK(y.opex), cf:()=>'n',    cagr:Y[3].opex/Y[0].opex},
+    {l:'📊 Net Income ($K)',vf:(y)=>fmtK(y.net),  cf:y=>nc(y.net),cagr:null},
+    {l:'EBITDA Margin',    vf:(y)=>y.rev>0?(y.net/y.rev*100).toFixed(1)+'%':'N/A',cf:()=>'',cagr:null},
+    {l:'💎 AuM Peak ($K)', vf:(y)=>fmtK(y.aum),  cf:()=>'pu',   cagr:Y[3].aum/Y[0].aum},
+    {l:'👥 Peak Users',    vf:(y)=>y.usr.toLocaleString(),cf:()=>'',cagr:Y[3].usr/Y[0].usr},
+    {l:'💵 Cash YE ($K)',  vf:(y)=>fmtK(y.cash), cf:y=>nc(y.cash),cagr:null}
+  ];
+  document.getElementById('kpi-b').innerHTML=krows.map(row=>{
+    const cells=Y.map(y=>`<td class="${row.cf(y)}">${row.vf(y)}</td>`).join('');
+    const cg=row.cagr?`<td class="p">${((Math.pow(row.cagr,1/3)-1)*100).toFixed(0)}%</td>`:'<td>—</td>';
+    return `<tr><td>${row.l}</td>${cells}${cg}</tr>`;
+  }).join('');
+}
+
+function renderForecastPage(){
+  const r=revenue(),o=opex(),n=netInc(),a=aum(),u=users(),cb=cashBal();
+  const yr=['2026','2027','2028','2029'];
+  const Y=yr.map((_,i)=>({
+    rev:aSum(r,i),opex:aSum(o,i),net:aSum(n,i),
+    aum:Math.max(...a.slice(i*4,i*4+4)),
+    usr:Math.max(...u.slice(i*4,i*4+4)),
+    cash:cb[i*4+3]
+  }));
+  const rev30=Math.round(Y[3].rev*1.30);
+  const opx30=Math.round(Y[3].opex*1.05);
+  const net30=rev30-opx30;
+  const aum30=Math.round(Y[3].aum*1.40);
+  const usr30=Math.round(Y[3].usr*1.35);
+  const csh30=cb[15]+net30+MA[15];
+
+  document.getElementById('kpi-fc').innerHTML=`
+    <div class="kc cp"><span class="ki">🏆</span>
+      <div class="kl">Revenue Total 5Y</div>
+      <div class="kv">${fmt(Y.reduce((s,y)=>s+y.rev,0)+rev30)}</div></div>
+    <div class="kc cg"><span class="ki">💰</span>
+      <div class="kl">Net Income 2030E</div>
+      <div class="kv">${fmt(net30)}</div>
+      <div class="kd pos">+30% Revenue proyectado</div></div>
+    <div class="kc co"><span class="ki">💎</span>
+      <div class="kl">AuM 2030E</div>
+      <div class="kv">${fmt(aum30)}</div></div>
+    <div class="kc ct"><span class="ki">👥</span>
+      <div class="kl">Usuarios 2030E</div>
+      <div class="kv">${usr30.toLocaleString()}</div></div>`;
+
+  document.getElementById('fc-h').innerHTML='<tr><th>Métrica ($000s)</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030E 🔮</th></tr>';
+  const E={rev:rev30,opex:opx30,net:net30,aum:aum30,usr:usr30,cash:csh30};
+  const fcr=[
+    {l:'📈 Revenue',   vs:Y.map(y=>fmtK(y.rev)).concat([fmtK(E.rev)]),   cls:Y.map(()=>'p').concat(['p'])},
+    {l:'💸 OpEx',      vs:Y.map(y=>fmtK(y.opex)).concat([fmtK(E.opex)]), cls:Y.map(()=>'n').concat(['n'])},
+    {l:'📊 Net Income',vs:Y.map(y=>fmtK(y.net)).concat([fmtK(E.net)]),   cls:Y.map(y=>nc(y.net)).concat([nc(E.net)])},
+    {l:'💵 Cash YE',   vs:Y.map(y=>fmtK(y.cash)).concat([fmtK(E.cash)]),cls:Y.map(y=>nc(y.cash)).concat([nc(E.cash)])},
+    {l:'💎 AuM Peak',  vs:Y.map(y=>fmtK(y.aum)).concat([fmtK(E.aum)]),  cls:Y.map(()=>'pu').concat(['pu'])},
+    {l:'👥 Peak Users',vs:Y.map(y=>y.usr.toLocaleString()).concat([E.usr.toLocaleString()]),cls:Array(5).fill('')},
+    {l:'EBITDA %',     vs:Y.map(y=>y.rev>0?(y.net/y.rev*100).toFixed(1)+'%':'N/A').concat([(E.net/E.rev*100).toFixed(1)+'%']),cls:Array(5).fill('')}
+  ];
+  document.getElementById('fc-b').innerHTML=fcr.map(row=>{
+    const cells=row.vs.map((v,i)=>`<td class="${row.cls[i]}"${i===4?' style="background:var(--pup)"':''}>${v}</td>`).join('');
+    return `<tr><td>${row.l}</td>${cells}</tr>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════════
+   TAX CALCULATOR
+════════════════════════════════════════════════ */
+function recalcTax(){
+  const tES=parseFloat(document.getElementById('tx-es-c').value)/100||.25;
+  const mth=parseFloat(document.getElementById('tx-es-m').value)||.40;
+  const tOt=parseFloat(document.getElementById('tx-ot-e').value)/100||.09;
+  const n=netInc();
+  const pES=n.map(v=>v>0?-Math.round(v*tES*mth):0);
+  const pOt=n.map(v=>v>0?-Math.round(v*tOt):0);
+  const aft=n.map((v,i)=>v+pES[i]);
+  const otName=document.getElementById('tx-ot-n').value||'Alternativo';
+
+  const qs=QQ.map(q=>q.slice(0,2)+q.slice(-2));
+  const th=qs.map(q=>`<th>${q}</th>`).join('');
+  document.getElementById('tax-h').innerHTML=`<tr><th>Concepto ($000s)</th>${th}<th>Tot 26</th><th>Tot 27</th><th>Tot 28</th><th>Tot 29</th></tr>`;
+  const trows=[
+    {l:'Net Income (pre-tax)',      v:n,  cf:v=>nc(v)},
+    {l:'🇪🇸 IS Pago Fracc. España', v:pES,cf:()=>'n'},
+    {l:`🌍 Tax Alt. (${otName})`,   v:pOt,cf:()=>'n'},
+    {l:'✅ Net Income post-tax',     v:aft,cf:v=>nc(v)}
+  ];
+  document.getElementById('tax-b').innerHTML=trows.map(row=>{
+    const cells=row.v.map(v=>`<td class="${row.cf(v)}">${v!==0?fmtK(v):'—'}</td>`).join('');
+    const tots=[0,1,2,3].map(y=>aSum(row.v,y)).map(v=>`<td class="${row.cf(v)}">${v!==0?fmtK(v):'—'}</td>`).join('');
+    return `<tr><td>${row.l}</td>${cells}${tots}</tr>`;
+  }).join('');
+
+  // Draw tax chart (only if visible)
+  if(curPage==='taxes') drawTax(pES,pOt);
+}
+
+/* ════════════════════════════════════════════════
+   INPUTS
+════════════════════════════════════════════════ */
 function buildUserInputs(){
   const u=users();
-  document.getElementById('user-inputs').innerHTML=QQ.map((q,i)=>`
-    <div class="inp-group">
-      <label class="inp-lbl">${q}</label>
-      <input class="inp-field" type="number" id="ui${i}" value="${u[i]}" min="0" step="10"
-        oninput="userDelta[${i}]=Math.max(0,parseInt(this.value)||0)-${BASE_USERS[i]};recalcAll()">
+  document.getElementById('user-inp').innerHTML=QQ.map((q,i)=>`
+    <div class="igrp">
+      <label class="ilbl">${q}</label>
+      <input class="if" id="ui${i}" type="number" value="${u[i]}" min="0" step="10"
+        oninput="uDelta[${i}]=(parseInt(this.value)||0)-${BU[i]};recalcAll()">
     </div>`).join('');
 }
 
 function buildCostInputs(){
-  document.getElementById('cost-inputs').innerHTML=QQ.map((q,i)=>`
-    <div class="inp-group">
-      <label class="inp-lbl">${q}</label>
-      <div class="inp-wrap"><span class="inp-prefix">$</span>
-        <input class="inp-field has-prefix" type="number" id="ci${i}" value="${costAdj[i]}" step="10"
-          oninput="costAdj[${i}]=parseFloat(this.value)||0;recalcAll()">
+  document.getElementById('cost-inp').innerHTML=QQ.map((q,i)=>`
+    <div class="igrp">
+      <label class="ilbl">${q}</label>
+      <div class="iw"><span class="ipfx">$</span>
+        <input class="if pfx" id="ci${i}" type="number" value="${cAdj[i]}" step="10"
+          oninput="cAdj[${i}]=parseFloat(this.value)||0;recalcAll()">
       </div>
     </div>`).join('');
 }
 
-function resetUsers(){ userDelta=Array(16).fill(0); buildUserInputs(); recalcAll(); }
-function resetCosts(){ costAdj=Array(16).fill(0); buildCostInputs(); recalcAll(); }
+function resetUsers(){ uDelta=Array(16).fill(0); buildUserInputs(); recalcAll(); }
+function resetCosts(){ cAdj=Array(16).fill(0);   buildCostInputs(); recalcAll(); }
 
-// ────────────────────────────────────────────────
-// RENDER KPI CARDS (dashboard)
-// ────────────────────────────────────────────────
-function renderKPIRow(){
-  const r=revenue(),o=opex(),n=netIncome(),c=cashBalance(),u=users(),a=aum();
-  const y0r=annSum(r,0), y0o=annSum(o,0), y0n=annSum(n,0);
-  const y1r=annSum(r,1);
-  const pct=y0r>0?((y1r-y0r)/Math.abs(y0r)*100).toFixed(0):0;
-  const bkIdx=n.findIndex(v=>v>0);
-  document.getElementById('kpi-row').innerHTML=`
-    <div class="kpi-card c-pu"><span class="kpi-ic">💎</span>
-      <div class="kpi-lbl">AuM/TVL Total 2026</div>
-      <div class="kpi-val">${fmt(annSum(a,0))}</div>
-      <div class="kpi-dlt pos">↑ Escenario $10M</div>
-    </div>
-    <div class="kpi-card c-gr"><span class="kpi-ic">📈</span>
-      <div class="kpi-lbl">Protocol Revenue 2026</div>
-      <div class="kpi-val">${fmt(y0r)}</div>
-      <div class="kpi-dlt pos">+${pct}% YoY vs 2027</div>
-    </div>
-    <div class="kpi-card c-re"><span class="kpi-ic">💸</span>
-      <div class="kpi-lbl">Total OpEx 2026</div>
-      <div class="kpi-val">${fmt(y0o)}</div>
-      <div class="kpi-dlt neg">↓ Inversión inicial</div>
-    </div>
-    <div class="kpi-card c-go"><span class="kpi-ic">🏦</span>
-      <div class="kpi-lbl">Net Income 2026</div>
-      <div class="kpi-val">${fmt(y0n)}</div>
-      <div class="kpi-dlt ${y0n>=0?'pos':'neg'}">${y0n>=0?'↑ Beneficio':'↓ Inversión arranque'}</div>
-    </div>
-    <div class="kpi-card c-te"><span class="kpi-ic">💵</span>
-      <div class="kpi-lbl">Cash Balance Q4 2026</div>
-      <div class="kpi-val">${fmt(c[3])}</div>
-      <div class="kpi-dlt ${c[3]>=0?'pos':'neg'}">+ Capital raise $10M</div>
-    </div>
-    <div class="kpi-card c-pu"><span class="kpi-ic">👤</span>
-      <div class="kpi-lbl">Usuarios Q4 2026</div>
-      <div class="kpi-val">${u[3].toLocaleString()}</div>
-      <div class="kpi-dlt pos">Breakeven: ${bkIdx>=0?QQ[bkIdx]:'TBD'}</div>
-    </div>`;
+/* ════════════════════════════════════════════════
+   MASTER KPI CARDS
+════════════════════════════════════════════════ */
+function renderDashKPIs(){
+  const r=revenue(),o=opex(),n=netInc(),cb=cashBal(),a=aum(),u=users();
+  const y0r=aSum(r,0),y1r=aSum(r,1),y0o=aSum(o,0),y0n=aSum(n,0),y0a=aSum(a,0);
+  const pct=y0r!==0?((y1r-y0r)/Math.abs(y0r)*100).toFixed(0):0;
+  const bk=n.findIndex(v=>v>0);
+  document.getElementById('kpi-dash').innerHTML=`
+    <div class="kc cp"><span class="ki">💎</span>
+      <div class="kl">AuM/TVL Total 2026</div>
+      <div class="kv">${fmt(y0a)}</div>
+      <div class="kd pos">↑ Escenario $10M</div></div>
+    <div class="kc cg"><span class="ki">📈</span>
+      <div class="kl">Protocol Revenue 2026</div>
+      <div class="kv">${fmt(y0r)}</div>
+      <div class="kd pos">+${pct}% YoY → 2027</div></div>
+    <div class="kc cr"><span class="ki">💸</span>
+      <div class="kl">Total OpEx 2026</div>
+      <div class="kv">${fmt(y0o)}</div>
+      <div class="kd neg">↓ Inversión inicial</div></div>
+    <div class="kc co"><span class="ki">🏦</span>
+      <div class="kl">Net Income 2026</div>
+      <div class="kv">${fmt(y0n)}</div>
+      <div class="kd ${y0n>=0?'pos':'neg'}">${y0n>=0?'↑ Beneficio':'↓ Año de arranque'}</div></div>
+    <div class="kc ct"><span class="ki">💵</span>
+      <div class="kl">Cash Balance Q4 2026</div>
+      <div class="kv">${fmt(cb[3])}</div>
+      <div class="kd ${cb[3]>=0?'pos':'neg'}">+ Capital raise $10M</div></div>
+    <div class="kc cp"><span class="ki">👤</span>
+      <div class="kl">Usuarios Q4 2026</div>
+      <div class="kv">${u[3].toLocaleString()}</div>
+      <div class="kd pos">Breakeven: ${bk>=0?QQ[bk]:'TBD'}</div></div>`;
 }
 
-// ────────────────────────────────────────────────
-// RENDER P&L TABLE
-// ────────────────────────────────────────────────
-function renderPLTable(){
-  const r=revenue(),o=opex(),n=netIncome(),c=cashBalance(),a=aum(),u=users();
-  const thCells=QQ.map(q=>`<th>${q.replace(' ','<br>')}</th>`).join('');
-  document.getElementById('pl-head').innerHTML=`<tr><th>Partida ($000s)</th>${thCells}</tr>`;
-
-  const rows=[
-    {lbl:'👥 Usuarios',        vals:u,         cf:()=>''},
-    {lbl:'💎 AuM / TVL',       vals:a,         cf:()=>'td-pu'},
-    {lbl:'APR (%)',             vals:APR.map(v=>(v*100).toFixed(0)+'%'), cf:()=>'',raw:true},
-    {lbl:'✅ Protocol Revenue', vals:r,         cf:()=>'td-pos'},
-    {lbl:'Total OpEx',          vals:o,         cf:()=>'td-neg'},
-    {lbl:'📊 NET INCOME',       vals:n,         cf:(v)=>neg(v),bold:true},
-    {lbl:'Capital Raise',       vals:CAP_RAISE, cf:(v)=>v?'td-pu':''},
-    {lbl:'M&A',                 vals:MA,        cf:()=>'td-neg'},
-    {lbl:'💵 Cash Balance',     vals:c,         cf:(v)=>neg(v),bold:true}
-  ];
-
-  document.getElementById('pl-body').innerHTML=rows.map(row=>{
-    const cells=row.vals.map((v,i)=>{
-      const cl=row.cf(v); const disp=row.raw?v:fmtK(v);
-      return `<td class="${cl}">${disp}</td>`;
-    }).join('');
-    const bold=row.bold?'font-weight:700':'';
-    return `<tr style="${bold}"><td>${row.lbl}</td>${cells}</tr>`;
-  }).join('');
-}
-
-// ────────────────────────────────────────────────
-// RENDER COSTS TABLE
-// ────────────────────────────────────────────────
-function renderCostsTable(){
-  const o=opex();
-  const qShort=QQ.map(q=>q.slice(0,2)+q.slice(-2));
-  const thCells=qShort.map(q=>`<th>${q}</th>`).join('');
-  document.getElementById('costs-head').innerHTML=`<tr><th>Partida ($000s)</th>${thCells}<th>Total 26</th><th>Total 27</th><th>Total 28</th><th>Total 29</th></tr>`;
-
-  let rows='';
-  for(const[k,v] of Object.entries(BASE_COSTS)){
-    const cells=v.map(x=>`<td>${fmtK(x)}</td>`).join('');
-    const t=[0,1,2,3].map(y=>annSum(v,y));
-    rows+=`<tr><td>${k}</td>${cells}${t.map(x=>`<td class="td-neg">${fmtK(x)}</td>`).join('')}</tr>`;
-  }
-  // Adjustments row
-  const adjCells=costAdj.map((v,i)=>`<td class="${v>0?'td-neg':v<0?'td-pos':''}">${v!==0?fmtK(v):'—'}</td>`).join('');
-  const adjT=[0,1,2,3].map(y=>annSum(costAdj,y));
-  rows+=`<tr style="background:var(--purple-pale)"><td>✏️ Ajustes Manuales</td>${adjCells}${adjT.map(x=>`<td class="${x>0?'td-neg':x<0?'td-pos':''}">${x!==0?fmtK(x):'—'}</td>`).join('')}</tr>`;
-  // Total row
-  const totCells=o.map(v=>`<td class="td-neg"><strong>${fmtK(v)}</strong></td>`).join('');
-  const totT=[0,1,2,3].map(y=>annSum(o,y));
-  rows+=`<tr class="row-total"><td>TOTAL OpEx</td>${totCells}${totT.map(x=>`<td class="td-neg">${fmtK(x)}</td>`).join('')}</tr>`;
-  document.getElementById('costs-body').innerHTML=rows;
-}
-
-// ────────────────────────────────────────────────
-// RENDER USERS TABLE
-// ────────────────────────────────────────────────
-function renderUsersTable(){
-  const u=users(),a=aum(),r=revenue();
-  const thCells=QQ.map(q=>`<th>${q.replace(' ','<br>')}</th>`).join('');
-  document.getElementById('users-head').innerHTML=`<tr><th>Métrica</th>${thCells}</tr>`;
-  const rows=[
-    {lbl:'👥 Usuarios',cf:()=>''},
-    {lbl:'💎 AuM/TVL ($K)',cf:()=>'td-pu'},
-    {lbl:'📈 Revenue ($K)',cf:()=>'td-pos'}
-  ];
-  const data=[u,a,r];
-  document.getElementById('users-body').innerHTML=rows.map((row,ri)=>{
-    const cells=data[ri].map((v,i)=>`<td class="${row.cf(v)}">${ri===0?v.toLocaleString():fmtK(v)}</td>`).join('');
-    return `<tr><td>${row.lbl}</td>${cells}</tr>`;
-  }).join('');
-}
-
-// ────────────────────────────────────────────────
-// RENDER KPIs TABLE & CARDS
-// ────────────────────────────────────────────────
-function renderKPIsPage(){
-  const r=revenue(),o=opex(),n=netIncome(),a=aum(),u=users(),c=cashBalance();
-  const yrs=['2026','2027','2028','2029'];
-  const Y=yrs.map((_,i)=>({
-    rev:annSum(r,i),opex:annSum(o,i),net:annSum(n,i),
-    aum:Math.max(...a.slice(i*4,i*4+4)),
-    usr:Math.max(...u.slice(i*4,i*4+4)),
-    cash:c[i*4+3]
-  }));
-  const bkIdx=n.findIndex(v=>v>0);
-
-  // Strategic KPI cards
-  document.getElementById('kpi-strategic').innerHTML=`
-    <div class="kpi-card c-pu"><span class="kpi-ic">🚀</span>
-      <div class="kpi-lbl">Breakeven Quarter</div>
-      <div class="kpi-val" style="font-size:18px">${bkIdx>=0?QQ[bkIdx]:'TBD'}</div>
-      <div class="kpi-dlt pos">Primer trimestre positivo</div>
-    </div>
-    <div class="kpi-card c-gr"><span class="kpi-ic">💰</span>
-      <div class="kpi-lbl">Revenue 2027</div>
-      <div class="kpi-val">${fmt(Y[1].rev)}</div>
-      <div class="kpi-dlt pos">↑ +${((Y[1].rev-Y[0].rev)/Math.abs(Y[0].rev)*100).toFixed(0)}% vs 2026</div>
-    </div>
-    <div class="kpi-card c-go"><span class="kpi-ic">🎯</span>
-      <div class="kpi-lbl">Max Cash Balance</div>
-      <div class="kpi-val">${fmt(Math.max(...c))}</div>
-      <div class="kpi-dlt pos">En ${QQ[c.indexOf(Math.max(...c))]}</div>
-    </div>
-    <div class="kpi-card c-te"><span class="kpi-ic">👥</span>
-      <div class="kpi-lbl">Usuarios 2029</div>
-      <div class="kpi-val">${Y[3].usr.toLocaleString()}</div>
-      <div class="kpi-dlt pos">↑ +${((Y[3].usr-Y[0].usr)/Y[0].usr*100).toFixed(0)}% vs 2026</div>
-    </div>`;
-
-  // KPIs table
-  document.getElementById('kpis-head').innerHTML=`<tr><th>KPI</th>${yrs.map(y=>`<th>${y}</th>`).join('')}<th>CAGR 26→29</th></tr>`;
-  const kpiRows=[
-    {lbl:'📈 Revenue ($K)',  vals:Y.map(y=>fmtK(y.rev)), cagr:Y[3].rev/Y[0].rev, cls:Y.map(()=>'td-pos')},
-    {lbl:'💸 OpEx ($K)',     vals:Y.map(y=>fmtK(y.opex)),cagr:Y[3].opex/Y[0].opex,cls:Y.map(()=>'td-neg')},
-    {lbl:'📊 Net Income ($K)',vals:Y.map(y=>fmtK(y.net)),cagr:null,cls:Y.map(y=>neg(y.net))},
-    {lbl:'EBITDA Margin',   vals:Y.map(y=>y.rev>0?(y.net/y.rev*100).toFixed(1)+'%':'N/A'),cagr:null,cls:Y.map(()=>'')},
-    {lbl:'💎 AuM Peak ($K)', vals:Y.map(y=>fmtK(y.aum)),cagr:Y[3].aum/Y[0].aum,cls:Y.map(()=>'td-pu')},
-    {lbl:'👥 Peak Users',    vals:Y.map(y=>y.usr.toLocaleString()),cagr:Y[3].usr/Y[0].usr,cls:Y.map(()=>'')},
-    {lbl:'💵 Cash YE ($K)',  vals:Y.map(y=>fmtK(y.cash)),cagr:null,cls:Y.map(y=>neg(y.cash))}
-  ];
-  document.getElementById('kpis-body').innerHTML=kpiRows.map(row=>{
-    const cells=row.vals.map((v,i)=>`<td class="${row.cls[i]}">${v}</td>`).join('');
-    const cagr=row.cagr!==null?`<td>${row.cagr>0?((Math.pow(row.cagr,1/3)-1)*100).toFixed(0)+'%':'N/A'}</td>`:'<td>—</td>';
-    return `<tr><td>${row.lbl}</td>${cells}${cagr}</tr>`;
-  }).join('');
-}
-
-// ────────────────────────────────────────────────
-// RENDER FORECAST PAGE
-// ────────────────────────────────────────────────
-function renderForecastPage(){
-  const r=revenue(),o=opex(),n=netIncome(),a=aum(),u=users(),c=cashBalance();
-  const Y=[0,1,2,3].map(i=>({
-    rev:annSum(r,i),opex:annSum(o,i),net:annSum(n,i),
-    aum:Math.max(...a.slice(i*4,i*4+4)),
-    usr:Math.max(...u.slice(i*4,i*4+4)),
-    cash:c[i*4+3]
-  }));
-  // 2030 projection
-  const rev30=Math.round(Y[3].rev*1.30);
-  const opex30=Math.round(Y[3].opex*1.05);
-  const net30=rev30-opex30;
-  const aum30=Math.round(Y[3].aum*1.40);
-  const usr30=Math.round(Y[3].usr*1.35);
-  const cash30=c[15]+net30+MA[15];
-  const E={rev:rev30,opex:opex30,net:net30,aum:aum30,usr:usr30,cash:cash30};
-
-  // KPI summary
-  const totalRev5y=Y.reduce((s,y)=>s+y.rev,0)+rev30;
-  document.getElementById('forecast-kpis').innerHTML=`
-    <div class="kpi-card c-pu"><span class="kpi-ic">🏆</span>
-      <div class="kpi-lbl">Revenue Total 5 Años</div>
-      <div class="kpi-val">${fmt(totalRev5y)}</div>
-    </div>
-    <div class="kpi-card c-gr"><span class="kpi-ic">💰</span>
-      <div class="kpi-lbl">Net Income 2030E</div>
-      <div class="kpi-val">${fmt(net30)}</div>
-      <div class="kpi-dlt pos">↑ +30% proyección Revenue</div>
-    </div>
-    <div class="kpi-card c-go"><span class="kpi-ic">💎</span>
-      <div class="kpi-lbl">AuM 2030E</div>
-      <div class="kpi-val">${fmt(aum30)}</div>
-    </div>
-    <div class="kpi-card c-te"><span class="kpi-ic">👥</span>
-      <div class="kpi-lbl">Usuarios 2030E</div>
-      <div class="kpi-val">${usr30.toLocaleString()}</div>
-    </div>`;
-
-  // Table
-  document.getElementById('fc-head').innerHTML='<tr><th>Métrica ($000s)</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030E 🔮</th></tr>';
-  const fcRows=[
-    {lbl:'📈 Protocol Revenue',v:Y.map(y=>y.rev).concat([E.rev]),cls:'td-pos'},
-    {lbl:'💸 Total OpEx',      v:Y.map(y=>y.opex).concat([E.opex]),cls:'td-neg'},
-    {lbl:'📊 Net Income',      v:Y.map(y=>y.net).concat([E.net]),clsFn:true},
-    {lbl:'💵 Cash Balance YE', v:Y.map(y=>y.cash).concat([E.cash]),clsFn:true},
-    {lbl:'💎 AuM Peak',        v:Y.map(y=>y.aum).concat([E.aum]),cls:'td-pu'},
-    {lbl:'👥 Peak Users',      v:Y.map(y=>y.usr).concat([E.usr]),raw:true},
-    {lbl:'EBITDA Margin',      v:Y.map(y=>y.rev>0?(y.net/y.rev*100).toFixed(1)+'%':'N/A').concat([(E.net/E.rev*100).toFixed(1)+'%']),raw:true}
-  ];
-  document.getElementById('fc-body').innerHTML=fcRows.map(row=>{
-    const cells=row.v.map((v,i)=>{
-      const cl=row.clsFn?neg(v):(row.cls||'');
-      const disp=row.raw?v:fmtK(v);
-      const style=i===4?'background:var(--purple-pale)':'';
-      return `<td class="${cl}" style="${style}">${disp}</td>`;
-    }).join('');
-    return `<tr><td>${row.lbl}</td>${cells}</tr>`;
-  }).join('');
-
-  renderForecastChart(Y,E);
-}
-
-// ────────────────────────────────────────────────
-// TAX CALCULATOR
-// ────────────────────────────────────────────────
-function recalcTax(){
-  const taxES=parseFloat(document.getElementById('tax-es-corp').value)/100||0.25;
-  const method=parseFloat(document.getElementById('tax-es-method').value)||0.40;
-  const taxOth=parseFloat(document.getElementById('tax-other-eff').value)/100||0.09;
-  const net=netIncome();
-  const payES=net.map(v=>v>0?-(Math.round(v*taxES*method)):0);
-  const payOth=net.map(v=>v>0?-(Math.round(v*taxOth)):0);
-  const afterTax=net.map((v,i)=>v+payES[i]);
-
-  const qShort=QQ.map(q=>q.slice(0,2)+q.slice(-2));
-  const thCells=qShort.map(q=>`<th>${q}</th>`).join('');
-  document.getElementById('tax-head').innerHTML=`<tr><th>Concepto ($000s)</th>${thCells}<th>Tot 26</th><th>Tot 27</th><th>Tot 28</th><th>Tot 29</th></tr>`;
-
-  const taxRows=[
-    {lbl:'Net Income (pre-tax)',v:net,     cf:(v)=>neg(v)},
-    {lbl:'🇪🇸 IS Pago Fracc. (España)',v:payES, cf:()=>'td-neg'},
-    {lbl:`🌍 Tax Alt. (${document.getElementById('tax-other-name').value})`,v:payOth,cf:()=>'td-neg'},
-    {lbl:'✅ Net Income post-tax',v:afterTax,cf:(v)=>neg(v)}
-  ];
-  document.getElementById('tax-body').innerHTML=taxRows.map(row=>{
-    const cells=row.v.map(v=>`<td class="${row.cf(v)}">${v!==0?fmtK(v):'—'}</td>`).join('');
-    const t=[0,1,2,3].map(y=>annSum(row.v,y));
-    return `<tr><td>${row.lbl}</td>${cells}${t.map(v=>`<td class="${row.cf(v)}">${v!==0?fmtK(v):'—'}</td>`).join('')}</tr>`;
-  }).join('');
-
-  renderTaxChart(payES,payOth);
-}
-
-// ────────────────────────────────────────────────
-// MASTER RECALC
-// ────────────────────────────────────────────────
+/* ════════════════════════════════════════════════
+   MASTER RECALC
+════════════════════════════════════════════════ */
 function recalcAll(){
-  renderKPIRow();
-  renderPLTable();
+  renderDashKPIs();
+  renderPL();
   renderCostsTable();
   renderUsersTable();
   renderKPIsPage();
   renderForecastPage();
-  // Charts for active page only
-  renderChartsFor(currentPage);
+  recalcTax();
+  // Redraw charts for current visible page
+  requestAnimationFrame(()=>drawChartsFor(curPage));
 }
 
-// ────────────────────────────────────────────────
-// CHARTS
-// ────────────────────────────────────────────────
-const CC={
-  pu:'rgba(123,47,190,1)',  puA:'rgba(123,47,190,.15)',
-  gr:'rgba(39,174,96,1)',   grA:'rgba(39,174,96,.15)',
-  re:'rgba(231,76,60,1)',   reA:'rgba(231,76,60,.15)',
-  go:'rgba(243,156,18,1)',  goA:'rgba(243,156,18,.15)',
-  te:'rgba(26,188,156,1)',  teA:'rgba(26,188,156,.15)'
-};
-const charts={};
-function destroyChart(id){ if(charts[id]){charts[id].destroy();delete charts[id];} }
+/* ════════════════════════════════════════════════
+   EXPORT
+════════════════════════════════════════════════ */
+function doExportCSV(){
+  const r=revenue(),o=opex(),n=netInc(),cb=cashBal(),a=aum(),u=users();
+  let s='Stabolut Financial Model — $10M Round\n\n';
+  s+='Metric,'+QQ.join(',')+'\n';
+  s+=`Users,${u.join(',')}\n`;
+  s+=`AuM/TVL ($K),${a.join(',')}\n`;
+  s+=`APR (%),${APR.map(v=>(v*100).toFixed(0)+'%').join(',')}\n`;
+  s+=`Revenue ($K),${r.join(',')}\n`;
+  s+=`OpEx ($K),${o.join(',')}\n`;
+  s+=`Net Income ($K),${n.join(',')}\n`;
+  s+=`Capital Raise ($K),${CAP.join(',')}\n`;
+  s+=`M&A ($K),${MA.join(',')}\n`;
+  s+=`Cash Balance ($K),${cb.join(',')}\n`;
+  for(const[k,v] of Object.entries(BC)) s+=`${k} ($K),${v.join(',')}\n`;
+  const bl=new Blob([s],{type:'text/csv;charset=utf-8;'});
+  const a2=document.createElement('a');
+  a2.href=URL.createObjectURL(bl);
+  a2.download='Stabolut_Model.csv';
+  a2.click();
+}
 
-const baseOpts={
-  responsive:true, maintainAspectRatio:false,
-  plugins:{legend:{labels:{font:{family:'DM Sans',size:11},usePointStyle:true,padding:12}}},
-  scales:{
-    x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10}}},
-    y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},callback:v=>'$'+Math.round(v).toLocaleString()}}
+function doExportExcel(){
+  if(typeof XLSX==='undefined'){
+    alert('La librería Excel no está disponible. Verifica la conexión a internet.');
+    return;
   }
-};
-
-function qlbl(){ return QQ.map(q=>q.replace(' ','\n')); }
-
-function renderMainChart(){
-  destroyChart('main');
-  const r=revenue(),o=opex(),n=netIncome();
-  charts['main']=new Chart(document.getElementById('cMain'),{
-    type:'bar',
-    data:{labels:qlbl(),datasets:[
-      {label:'Revenue $K',data:r,backgroundColor:CC.grA,borderColor:CC.gr,borderWidth:2,borderRadius:4},
-      {label:'OpEx $K',data:o.map(v=>-v),backgroundColor:CC.reA,borderColor:CC.re,borderWidth:2,borderRadius:4},
-      {label:'Net Income $K',data:n,type:'line',borderColor:CC.pu,backgroundColor:CC.puA,fill:true,tension:.4,pointBackgroundColor:CC.pu,pointRadius:3}
-    ]},
-    options:{...baseOpts,interaction:{mode:'index'}}
-  });
-}
-
-function renderAuMChart(){
-  destroyChart('aum');
-  charts['aum']=new Chart(document.getElementById('cAum'),{
-    type:'line',
-    data:{labels:qlbl(),datasets:[{label:'AuM/TVL $K',data:aum(),borderColor:CC.pu,backgroundColor:CC.puA,fill:true,tension:.4,pointBackgroundColor:CC.pu,pointRadius:3}]},
-    options:{...baseOpts}
-  });
-}
-
-function renderCostsChart(){
-  destroyChart('costs');
-  const labels=Object.keys(BASE_COSTS);
-  const vals=labels.map(k=>annSum(BASE_COSTS[k],0));
-  charts['costs']=new Chart(document.getElementById('cCosts'),{
-    type:'doughnut',
-    data:{labels,datasets:[{data:vals,backgroundColor:[CC.pu,CC.gr,CC.re,CC.go,CC.te,'rgba(52,152,219,.8)'],borderWidth:2,borderColor:'#fff'}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},padding:8}}}}
-  });
-}
-
-function renderCashChart(){
-  destroyChart('cash');
-  const c=cashBalance();
-  charts['cash']=new Chart(document.getElementById('cCash'),{
-    type:'line',
-    data:{labels:qlbl(),datasets:[{label:'Cash Balance $K',data:c,borderColor:CC.te,backgroundColor:CC.teA,fill:true,tension:.4,pointBackgroundColor:c.map(v=>v>=0?CC.te:CC.re),pointRadius:4}]},
-    options:{...baseOpts}
-  });
-}
-
-function renderUsersChart(){
-  destroyChart('users');
-  const u=users();
-  charts['users']=new Chart(document.getElementById('cUsers'),{
-    type:'bar',
-    data:{labels:qlbl(),datasets:[{label:'Usuarios',data:u,backgroundColor:CC.puA,borderColor:CC.pu,borderWidth:2,borderRadius:6}]},
-    options:{...baseOpts,scales:{...baseOpts.scales,y:{...baseOpts.scales.y,ticks:{callback:v=>v.toLocaleString()}}}}
-  });
-}
-
-function renderAuMUserChart(){
-  destroyChart('aumUser');
-  const u=users(),a=aum();
-  const apu=u.map((v,i)=>v>0?Math.round(a[i]/v):0);
-  charts['aumUser']=new Chart(document.getElementById('cAumUser'),{
-    type:'line',
-    data:{labels:qlbl(),datasets:[{label:'AuM/Usuario $K',data:apu,borderColor:CC.go,backgroundColor:CC.goA,fill:true,tension:.4,pointBackgroundColor:CC.go,pointRadius:4}]},
-    options:{...baseOpts}
-  });
-}
-
-function renderEbitdaChart(){
-  destroyChart('ebitda');
-  const r=revenue(),n=netIncome();
-  const yrLabels=['2026','2027','2028','2029'];
-  const margins=yrLabels.map((_,i)=>{const yr=annSum(r,i);return yr>0?parseFloat((annSum(n,i)/yr*100).toFixed(1)):0;});
-  charts['ebitda']=new Chart(document.getElementById('cEbitda'),{
-    type:'bar',
-    data:{labels:yrLabels,datasets:[{label:'EBITDA Margin %',data:margins,backgroundColor:margins.map(v=>v>=0?CC.grA:CC.reA),borderColor:margins.map(v=>v>=0?CC.gr:CC.re),borderWidth:2,borderRadius:8}]},
-    options:{...baseOpts,scales:{...baseOpts.scales,y:{...baseOpts.scales.y,ticks:{callback:v=>v+'%'}}}}
-  });
-}
-
-function renderGrowthChart(){
-  destroyChart('growth');
-  const r=revenue();
-  const yrLabels=['2026','2027','2028','2029'];
-  const revY=yrLabels.map((_,i)=>annSum(r,i));
-  const gr=revY.map((v,i)=>i>0?parseFloat(((v-revY[i-1])/Math.abs(revY[i-1])*100).toFixed(1)):0);
-  charts['growth']=new Chart(document.getElementById('cGrowth'),{
-    type:'line',
-    data:{labels:yrLabels,datasets:[{label:'Revenue YoY %',data:gr,borderColor:CC.pu,backgroundColor:CC.puA,fill:true,tension:.4,pointBackgroundColor:CC.pu,pointRadius:6}]},
-    options:{...baseOpts,scales:{...baseOpts.scales,y:{...baseOpts.scales.y,ticks:{callback:v=>v+'%'}}}}
-  });
-}
-
-function renderTaxChart(payES,payOth){
-  destroyChart('tax');
-  const yrLabels=['2026','2027','2028','2029'];
-  const es=yrLabels.map((_,i)=>Math.abs(annSum(payES,i)));
-  const ot=yrLabels.map((_,i)=>Math.abs(annSum(payOth,i)));
-  charts['tax']=new Chart(document.getElementById('cTax'),{
-    type:'bar',
-    data:{labels:yrLabels,datasets:[
-      {label:'🇪🇸 IS España $K',data:es,backgroundColor:CC.puA,borderColor:CC.pu,borderWidth:2,borderRadius:6},
-      {label:'🌍 Tax Alternativo $K',data:ot,backgroundColor:CC.goA,borderColor:CC.go,borderWidth:2,borderRadius:6}
-    ]},
-    options:{...baseOpts}
-  });
-}
-
-function renderForecastChart(Y,E){
-  destroyChart('forecast');
-  if(!Y||!E) return;
-  const labels=['2026','2027','2028','2029','2030E'];
-  const revY=Y.map(y=>y.rev).concat([E.rev]);
-  const netY=Y.map(y=>y.net).concat([E.net]);
-  const cashY=Y.map(y=>y.cash).concat([E.cash]);
-  charts['forecast']=new Chart(document.getElementById('cForecast'),{
-    type:'bar',
-    data:{labels,datasets:[
-      {label:'Revenue $K',data:revY,backgroundColor:CC.grA,borderColor:CC.gr,borderWidth:2,borderRadius:6},
-      {label:'Net Income $K',data:netY,backgroundColor:netY.map(v=>v>=0?CC.puA:CC.reA),borderColor:netY.map(v=>v>=0?CC.pu:CC.re),borderWidth:2,borderRadius:6},
-      {label:'Cash Balance $K',data:cashY,type:'line',borderColor:CC.te,backgroundColor:'transparent',tension:.4,pointBackgroundColor:cashY.map(v=>v>=0?CC.te:CC.re),pointRadius:6}
-    ]},
-    options:{...baseOpts,interaction:{mode:'index'}}
-  });
-}
-
-// ────────────────────────────────────────────────
-// EXPORT
-// ────────────────────────────────────────────────
-function exportCSV(){
-  const r=revenue(),o=opex(),n=netIncome(),c=cashBalance(),a=aum(),u=users();
-  let csv='Stabolut Financial Model — $10M Round\n\n';
-  csv+='Metric,$K,'+QQ.join(',')+ '\n';
-  csv+=`Users,,${u.join(',')}\n`;
-  csv+=`AuM/TVL,,${a.join(',')}\n`;
-  csv+=`APR (%),,%,${APR.map(v=>(v*100).toFixed(0)+'%').join(',')}\n`;
-  csv+=`Protocol Revenue,,${r.join(',')}\n`;
-  csv+=`Total OpEx,,${o.join(',')}\n`;
-  csv+=`Net Income,,${n.join(',')}\n`;
-  csv+=`Capital Raise,,${CAP_RAISE.join(',')}\n`;
-  csv+=`M&A,,${MA.join(',')}\n`;
-  csv+=`Cash Balance,,${c.join(',')}\n`;
-  for(const[k,v] of Object.entries(BASE_COSTS)) csv+=`${k},,${v.join(',')}\n`;
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const a2=document.createElement('a'); a2.href=URL.createObjectURL(blob);
-  a2.download='Stabolut_Financial_Model.csv'; a2.click();
-}
-
-function exportExcel(){
-  if(typeof XLSX==='undefined'){alert('Error: librería Excel no cargada. Comprueba la conexión a internet.');return;}
-  const r=revenue(),o=opex(),n=netIncome(),c=cashBalance(),a=aum(),u=users();
+  const r=revenue(),o=opex(),n=netInc(),cb=cashBal(),a=aum(),u=users();
   const wb=XLSX.utils.book_new();
 
-  // Sheet 1: Overview
-  const s1=[
-    ['STABOLUT — FINANCIAL MODEL · $10M Round Scenario','','','',''],
-    ['Generado: '+new Date().toLocaleDateString('es-ES')],
-    [],
-    ['Metric ($000s)',...QQ],
-    ['Users',...u],
-    ['AuM/TVL',...a],
-    ['APR (%)',...APR.map(v=>(v*100).toFixed(0)+'%')],
-    ['Protocol Revenue',...r],
-    ['Total OpEx',...o],
-    ['Net Income',...n],
-    ['Capital Raise',...CAP_RAISE],
-    ['M&A',...MA],
-    ['Cash Balance',...c]
-  ];
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s1),'P&L Trimestral');
-
-  // Sheet 2: Costs
-  const s2=[['Cost Item ($000s)',...QQ,'Total 26','Total 27','Total 28','Total 29']];
-  for(const[k,v] of Object.entries(BASE_COSTS))
-    s2.push([k,...v,...[0,1,2,3].map(y=>annSum(v,y))]);
-  s2.push(['Manual Adjustments',...costAdj,...[0,1,2,3].map(y=>annSum(costAdj,y))]);
-  s2.push(['TOTAL OpEx',...o,...[0,1,2,3].map(y=>annSum(o,y))]);
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s2),'Costes');
-
-  // Sheet 3: Annual Summary
-  const Y=[0,1,2,3].map(i=>({rev:annSum(r,i),opex:annSum(o,i),net:annSum(n,i),cash:c[i*4+3]}));
-  const rev30=Math.round(Y[3].rev*1.30); const opex30=Math.round(Y[3].opex*1.05);
-  const s3=[
-    ['Annual Summary ($000s)','2026','2027','2028','2029','2030E (Proj)'],
-    ['Revenue',...Y.map(y=>y.rev),rev30],
-    ['OpEx',...Y.map(y=>y.opex),opex30],
-    ['Net Income',...Y.map(y=>y.net),rev30-opex30],
-    ['Cash Balance (YE)',...Y.map(y=>y.cash),c[15]+rev30-opex30+MA[15]]
-  ];
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s3),'Resumen Anual');
-
-  // Sheet 4: Users
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
-    ['Quarter',...QQ],
-    ['Users',...u],
-    ['User Delta',...userDelta],
-    ['AuM/TVL',...a]
+    ['STABOLUT — FINANCIAL MODEL · $10M Round'],
+    ['Generado: '+new Date().toLocaleDateString('es-ES')],[],
+    ['Metric ($000s)',...QQ],
+    ['Users',...u],['AuM/TVL',...a],
+    ['APR (%)',...APR.map(v=>(v*100).toFixed(0)+'%')],
+    ['Revenue',...r],['Total OpEx',...o],['Net Income',...n],
+    ['Capital Raise',...CAP],['M&A',...MA],['Cash Balance',...cb]
+  ]),'P&L Trimestral');
+
+  const cs=[['Cost Item ($000s)',...QQ,'Total 26','Total 27','Total 28','Total 29']];
+  for(const[k,v] of Object.entries(BC)) cs.push([k,...v,...[0,1,2,3].map(y=>aSum(v,y))]);
+  cs.push(['Ajustes Manuales',...cAdj,...[0,1,2,3].map(y=>aSum(cAdj,y))]);
+  cs.push(['TOTAL OpEx',...o,...[0,1,2,3].map(y=>aSum(o,y))]);
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(cs),'Costes');
+
+  const Y=[0,1,2,3].map(i=>({rev:aSum(r,i),opx:aSum(o,i),net:aSum(n,i),cash:cb[i*4+3]}));
+  const rev30=Math.round(Y[3].rev*1.30),opx30=Math.round(Y[3].opx*1.05);
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+    ['Annual Summary ($000s)','2026','2027','2028','2029','2030E'],
+    ['Revenue',...Y.map(y=>y.rev),rev30],
+    ['OpEx',...Y.map(y=>y.opx),opx30],
+    ['Net Income',...Y.map(y=>y.net),rev30-opx30],
+    ['Cash Balance YE',...Y.map(y=>y.cash),cb[15]+rev30-opx30+MA[15]]
+  ]),'Resumen Anual');
+
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([
+    ['Quarter',...QQ],['Users',...u],['User Delta',...uDelta],['AuM/TVL',...a]
   ]),'Usuarios');
 
   XLSX.writeFile(wb,'Stabolut_Financial_Model.xlsx');
 }
 
-// ────────────────────────────────────────────────
-// INIT
-// ────────────────────────────────────────────────
+/* ════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded',()=>{
-  const today=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
-  document.getElementById('today-date').textContent='Actualizado: '+today;
-  document.getElementById('footer-date').textContent=today;
+  const d=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('hdate').textContent='Actualizado: '+d;
+  document.getElementById('fdate').textContent=d;
 
   buildUserInputs();
   buildCostInputs();
 
-  // Initial render of all data
-  renderKPIRow();
-  renderPLTable();
+  // Render all data tables
+  renderDashKPIs();
+  renderPL();
   renderCostsTable();
   renderUsersTable();
   renderKPIsPage();
   renderForecastPage();
+  recalcTax();
 
-  // Charts only for the visible (dashboard) page
-  // Use requestAnimationFrame so canvas is fully laid out first
-  requestAnimationFrame(()=>{
-    renderMainChart();
-    renderAuMChart();
-    renderCostsChart();
-    renderCashChart();
-  });
+  // Draw dashboard charts after two animation frames
+  // (ensures CSS layout is fully calculated, canvas has real dimensions)
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    drawMain();
+    drawAuM();
+    drawCosts();
+    drawCash();
+  }));
 });
 </script>
 </body>
